@@ -25,7 +25,10 @@ async def translate_text(text, lang_code, lang_name):
         prompt = f"Please translate the following text to {lang_name}:\n\n{text}"
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "Just type the translated text."},
+                {"role": "user", "content": prompt}
+            ]
         )
         return response
     except Exception as e:
@@ -35,10 +38,7 @@ async def run_g4f_chat(channel_id, user_id, message):
     try:
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Just type the translated text."},
-                {"role": "user", "content": message}
-            ]
+            messages=[{"role": "user", "content": message}]
         )
         return response
     except Exception as e:
