@@ -35,7 +35,10 @@ async def run_g4f_chat(channel_id, user_id, message):
     try:
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": message}]
+            messages=[
+                {"role": "system", "content": "Just type the translated text."},
+                {"role": "user", "content": message}
+            ]
         )
         return response
     except Exception as e:
