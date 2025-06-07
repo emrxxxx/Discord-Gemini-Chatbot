@@ -117,7 +117,10 @@ async def on_message(message: discord.Message):
 
         await message.channel.send(f"Sonuç: {result}")
         return
-
+        
+    if bot.user not in message.mentions:
+        return
+        
     translate_match = re.search(r'^(.*?)\s+-(tr|en)$', message.content, re.IGNORECASE | re.DOTALL)
     if translate_match:
         text_to_translate = translate_match.group(1).strip()
