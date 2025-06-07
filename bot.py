@@ -118,9 +118,6 @@ async def on_message(message: discord.Message):
         await message.channel.send(f"Sonuç: {result}")
         return
         
-    if bot.user not in message.mentions:
-        return
-        
     translate_match = re.search(r'^(.*?)\s+-(tr|en)$', message.content, re.IGNORECASE | re.DOTALL)
     if translate_match:
         text_to_translate = translate_match.group(1).strip()
@@ -139,7 +136,10 @@ async def on_message(message: discord.Message):
                     logger.error(f"Çeviri hatası: {e}", exc_info=True)
                     await message.channel.send("❌ Çeviri sırasında hata oluştu.", delete_after=10)
         return
-
+        
+    if bot.user not in message.mentions:
+        return
+    
     async with message.channel.typing():
         try:
             user_id = str(message.author.id)
