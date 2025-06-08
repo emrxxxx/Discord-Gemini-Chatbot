@@ -44,7 +44,7 @@ async def run_g4f_chat(channel_id, user_id, message):
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
-                # {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant. Speak in Turkish. Consider the last 20 messages, summarize them, and provide a clear, contextually appropriate response to the user's latest question. Be polite and avoid unnecessary details.\n\n{history_context}"},
                 {"role": "user", "content": prompt}
             ]
         )
