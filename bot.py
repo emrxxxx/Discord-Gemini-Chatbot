@@ -40,17 +40,20 @@ async def translate_text(text, lang_code, lang_name):
 async def run_g4f_chat(channel_id, user_id, message):
     try:
         history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in message_history])
-        prompt = f"Previous messages (up to 20):\n{history_context}\n\nCurrent message from {user_id}: {message}"
+        system_prompt = "You are a helpful assistant. Summarize the last 20 messages and respond clearly and contextually to the user's latest question. Be polite, concise, and avoid unnecessary details."
+        user_prompt = f"Previous messages:\n{history_context}\n\nUser ({user_id}) question: {message}"
+        logger.debug(f"System Prompt: {system_prompt}\nUser Prompt: {user_prompt}")
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant. Speak in Turkish. Consider the last 20 messages, summarize them, and provide a clear, contextually appropriate response to the user's latest question. Be polite and avoid unnecessary details.\n\n{history_context}"},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
             ]
         )
         return response
     except Exception as e:
-        return f"❌ g4f hata verdi: {e}"
+        logger.error(f"g4f error: {e}", exc_info=True)
+        return f"❌ g4f error: {e}"
 
 async def send_response_parts(message, content):
     if len(content) <= 2000:
