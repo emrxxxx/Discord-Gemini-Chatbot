@@ -40,7 +40,7 @@ async def translate_text(text, lang_code, lang_name):
 async def run_g4f_chat(channel_id, user_id, message):
     try:
         history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in message_history])
-        system_prompt = "You are a helpful assistant. Summarize the last 20 messages and respond clearly and contextually to the user's latest question. Be polite, concise, and avoid unnecessary details."
+        system_prompt = "You are a helpful assistant. Speak in Turkish. Summarize the last 20 messages and respond clearly and contextually to the user's latest question. Be polite, concise, and avoid unnecessary details."
         user_prompt = f"Previous messages:\n{history_context}\n\nUser ({user_id}) question: {message}"
         logger.debug(f"System Prompt: {system_prompt}\nUser Prompt: {user_prompt}")
         response = g4f.ChatCompletion.create(
