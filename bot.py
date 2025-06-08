@@ -6,6 +6,7 @@ import g4f
 import re
 import asyncio
 import logging
+from collections import deque
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 RADIO_URL = "http://shoutcast.radyogrup.com:1020/;"
 CHANNEL_ID = 1372651502832976045
+
+message_history = deque(maxlen=20)
 
 async def translate_text(text, lang_code, lang_name):
     try:
@@ -36,9 +39,14 @@ async def translate_text(text, lang_code, lang_name):
 
 async def run_g4f_chat(channel_id, user_id, message):
     try:
+        history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in message_history])
+        prompt = f"Previous messages (up to 20):\n{history_context}\n\nCurrent message from {user_id}: {message}"
         response = g4f.ChatCompletion.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": message}]
+            messages=[
+                # {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
         )
         return response
     except Exception as e:
@@ -92,6 +100,11 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
+
+    message_history.append({
+        "author": str(message.author),
+        "content": message.content
+    })
 
     ctx = await bot.get_context(message)
     if ctx.valid:
