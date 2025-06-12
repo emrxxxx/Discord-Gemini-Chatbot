@@ -103,7 +103,10 @@ async def on_ready():
 async def on_message(message: discord.Message):
     if message.author.bot:
         return
-
+        
+    if isinstance(message.channel, discord.DMChannel):
+        return
+        
     message_history.append({
         "author": str(message.author),
         "content": message.content
