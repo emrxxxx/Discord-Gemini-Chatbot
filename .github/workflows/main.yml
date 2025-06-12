@@ -1,67 +1,39 @@
 name: Run Discord Bot
 
 on:
-  push:
-    branches: [ "main" ]
+  schedule:
+    - cron: '0 */6 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: discord-bot-run
+  cancel-in-progress: true
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    
     timeout-minutes: 360
-    strategy:
-      fail-fast: false
-      max-parallel: 1
 
     steps:
-      - name: Kodu çek
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Python cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Python kurulumu
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
 
-      - name: FFmpeg kurulumu
+      - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
-        if: success()
 
-      - name: Bağımlılıkları yükle
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        if: success()
 
-      - name: Discord botu başlat
+      - name: Run Discord bot
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          PYTHONUNBUFFERED: 1
-        run: |
-          # Hata durumunda yeniden başlatma döngüsü
-          while true; do
-            python bot.py
-            echo "Bot çöktü, 10 saniye sonra yeniden başlatılıyor..."
-            sleep 10
-          done
-        if: success()
-
-      - name: Hata bildirimi
-        if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d '{"content":"⚠️ Bot çöktü! Lütfen kontrol edin."}' \
-          $DISCORD_WEBHOOK
+        run: python bot.py
