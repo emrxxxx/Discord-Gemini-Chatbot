@@ -19,7 +19,7 @@ intents.voice_states = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 RADIO_URL = "http://shoutcast.radyogrup.com:1020/;"
-CHANNEL_ID = 1372651502832976045
+CHANNEL_ID = 1392962273374375959
 
 message_history = deque(maxlen=20)
 
