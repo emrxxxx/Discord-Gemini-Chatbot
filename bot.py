@@ -53,34 +53,30 @@ async def yardim(ctx):
 @bot.command(name="kahvefali")
 async def kahvefali(ctx):
     """Kişisel ilham mesajı verir"""
-    # Kullanıcı sayacını artır
-    user_id = str(ctx.author.id)
-    user_fortune_counts[user_id] += 1
-    count = user_fortune_counts[user_id]
-    
     async with ctx.typing():
         try:
             system_prompt = f"""
             Sen ilham verici ve bilge bir rehbersin. 
-            Bu kullanıcı için {count}. kez kişisel bir mesaj oluşturuyorsun.
             Kullanıcı adı: {ctx.author.name}
             
-            Örnek mesaj tarzı (bunlar sadece örnek, kopyalama):
+            GÖREVİN:
+            - Kullanıcıya özel, kısa, ilham verici, umut dolu TAM TEK BİR CÜMLE mesaj ver.
+            - Mesaj doğrudan kullanıcıya hitap etmeli ("sen" zamiri kullan).
+            - Mistik, bilge, pozitif ve kişisel ton kullan.
+            - Kullanıcının adını ({ctx.author.name}) doğal şekilde kullanabilirsin.
+            - Sadece mesajı yaz, başka hiçbir şey ekme (başlık, imza vs.)
+            
+            Örnek mesaj tarzı (BUNLARI KOPYALAMA, SADECE TARZI ANLA):
             - Evren seni bir testten geçiriyor, sakin kalırsan geçeceksin.
             - Zihnini açacak bir ortam değişikliği sana iyi gelecek.
             - İç huzurun için alman gereken karar çok yakında şekilleniyor.
             - Beklemediğin biri senden özür dilemek isteyebilir.
             - Kendine daha iyi bakmaya başlayacağın bir dönemdesin.
-            
-            GÖREVİN:
-            - Kullanıcıya özel, kısa, ilham verici, umut dolu BİR CÜMLE mesaj ver.
-            - Mesaj doğrudan kullanıcıya hitap etmeli ("sen" zamiri kullan).
-            - Mistik, bilge, pozitif ve kişisel ton kullan.
-            - Kullanıcının adını ({ctx.author.name}) doğal şekilde kullanabilirsin.
-            - Sadece mesajı yaz, başka hiçbir şey ekme (başlık, imza vs.)
+            - Gördüğün karanlık bir tünelin sonunda ışık belirmek üzere.
+            - Bir kapının kapanması, senin için daha iyisini açma hazırlığıdır.
             """
 
-            user_prompt = f"Bu kullanıcı için {count}. kez kişisel ilham mesajı oluştur. Kullanıcı: {ctx.author.name}"
+            user_prompt = f"Kullanıcı: {ctx.author.name}"
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -100,7 +96,7 @@ async def kahvefali(ctx):
                     description=response.strip(),
                     color=discord.Color.purple()
                 )
-                embed.set_footer(text=f"{ctx.author.name} için {count}. mesaj", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                embed.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
                 await ctx.send(embed=embed)
             else:
                 await ctx.send("❌ Mesaj oluşturulurken bir hata oluştu.")
