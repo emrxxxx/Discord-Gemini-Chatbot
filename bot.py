@@ -30,7 +30,7 @@ async def ping(ctx):
     latency = round(bot.latency * 1000)
     await ctx.send(f"🏓 Pong! Gecikme: {latency}ms")
 
-@bot.command(name="yardim", aliases=["help"])
+@bot.command(name="yardim")  # help alias'ini kaldirdik
 async def yardim(ctx):
     """Yardım komutu"""
     embed = discord.Embed(
