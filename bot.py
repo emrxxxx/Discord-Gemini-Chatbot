@@ -6,7 +6,8 @@ import g4f
 import re
 import asyncio
 import logging
-from collections import deque
+from collections import deque, defaultdict
+import random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +23,9 @@ RADIO_URL = "http://shoutcast.radyogrup.com:1020/;"
 CHANNEL_ID = 1392962273374375959
 
 message_history = deque(maxlen=20)
+
+# Kullanıcı bazlı fal sayaçları
+user_fortune_counts = defaultdict(int)
 
 # KOMUTLAR
 @bot.command(name="ping")
@@ -39,46 +43,44 @@ async def yardim(ctx):
         color=discord.Color.blue()
     )
     embed.add_field(name="!ping", value="Botun çalışıp çalışmadığını kontrol eder", inline=False)
-    embed.add_field(name="!kahvefali [soru]", value="Gerçek kahve falı bakar", inline=False)
-    embed.add_field(name="!tarotfali [kart sayısı] [soru]", value="Tarot falı bakar (kart sayısı: 1, 3, 7, 12 - varsayılan: 3)", inline=False)
+    embed.add_field(name="!kahvefali", value="Kişisel ilham mesajı al", inline=False)
     embed.add_field(name="!hesapla <işlem>", value="Matematiksel işlem yapar (örn: 5 + 3)", inline=False)
-    embed.add_field(name="<metin> -tr/-en", value="Metni çevirir", inline=False)
+    embed.add_field(name="!cevir <metin> -tr/-en", value="Metni çevirir", inline=False)
     embed.add_field(name="!yardim", value="Bu yardım menüsünü gösterir", inline=False)
     embed.set_footer(text="Bot @bot etiketlenerek de kullanabilirsiniz")
     await ctx.send(embed=embed)
 
 @bot.command(name="kahvefali")
-async def kahvefali(ctx, *, soru: str = None):
-    """Gerçek kahve falı gibi detaylı fal bakar. Kullanım: !kahvefali [isteğe bağlı soru]"""
+async def kahvefali(ctx):
+    """Kişisel ilham mesajı verir"""
+    # Kullanıcı sayacını artır
+    user_id = str(ctx.author.id)
+    user_fortune_counts[user_id] += 1
+    count = user_fortune_counts[user_id]
+    
     async with ctx.typing():
         try:
-            system_prompt = """
-            Sen çok deneyimli bir Türk kahve falı ustası gibisin. 
-            Gerçek kahve falı ustalarının yaptığı gibi detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+            system_prompt = f"""
+            Sen ilham verici ve bilge bir rehbersin. 
+            Bu kullanıcı için {count}. kez kişisel bir mesaj oluşturuyorsun.
+            Kullanıcı adı: {ctx.author.name}
             
-            DETAYLI ANALİZ YAP:
-            1. Kahve fincanındaki tüm şekillere göre detaylı yorum yap
-            2. Klasik Türk kahve falı sembollerini ve anlamlarını kullan
-            3. Şekillerin konumlarını ve birbirleriyle ilişkilerini değerlendir
-            4. Geleneksel kahve falı yorum tekniklerini uygula
-            5. Detaylı sembollerin analizini yap ama gösterme
+            Örnek mesaj tarzı (bunlar sadece örnek, kopyalama):
+            - Evren seni bir testten geçiriyor, sakin kalırsan geçeceksin.
+            - Zihnini açacak bir ortam değişikliği sana iyi gelecek.
+            - İç huzurun için alman gereken karar çok yakında şekilleniyor.
+            - Beklemediğin biri senden özür dilemek isteyebilir.
+            - Kendine daha iyi bakmaya başlayacağın bir dönemdesin.
             
-            AMA SADECE ŞUNLARI SUN:            
-            💭 GENEL YORUM:
-            [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-
-            Olayların ne zaman gerçekleşeceği.
-            [Kullanıcıya özel öneriler ve uyarılar]
-            
-            Dili samimi, geleneksel kahve falı ustaları gibi tut. 
-            Türk kahve falı geleneklerine sadık kal.
-            Her yorum kişisel, anlamlı ve ilham verici olsun.
+            GÖREVİN:
+            - Kullanıcıya özel, kısa, ilham verici, umut dolu BİR CÜMLE mesaj ver.
+            - Mesaj doğrudan kullanıcıya hitap etmeli ("sen" zamiri kullan).
+            - Mistik, bilge, pozitif ve kişisel ton kullan.
+            - Kullanıcının adını ({ctx.author.name}) doğal şekilde kullanabilirsin.
+            - Sadece mesajı yaz, başka hiçbir şey ekme (başlık, imza vs.)
             """
 
-            if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi detaylı analiz yap ama sadece genel yorumu sun."
-            else:
-                user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Detaylı analiz yap ama sadece genel yorumu sun."
+            user_prompt = f"Bu kullanıcı için {count}. kez kişisel ilham mesajı oluştur. Kullanıcı: {ctx.author.name}"
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -89,195 +91,25 @@ async def kahvefali(ctx, *, soru: str = None):
                         {"role": "user", "content": user_prompt}
                     ]
                 ),
-                timeout=45.0
+                timeout=30.0
             )
 
             if response:
-                # Uzun yanıtlar için dosya gönderme
-                if len(response) > 3800:
-                    filename = f"kahve_fali_{ctx.author.id}.txt"
-                    with open(filename, "w", encoding="utf-8") as f:
-                        f.write(f"☕ GERÇEK KAHVE FALI - {ctx.author}\n")
-                        f.write(response)
-                        f.write(f"\n📅 Fal Tarihi: {discord.utils.utcnow().strftime('%d.%m.%Y %H:%M')}")
-                    
-                    embed = discord.Embed(
-                        title="☕ Gerçek Kahve Falı",
-                        description="Fal yorumunuz çok detaylı olduğu için dosya olarak gönderildi.",
-                        color=discord.Color.from_rgb(139, 69, 19)
-                    )
-                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-                    await ctx.send(embed=embed, file=discord.File(filename))
-                    os.remove(filename)
-                else:
-                    embed = discord.Embed(
-                        title="☕ Gerçek Kahve Falı",
-                        description=response,
-                        color=discord.Color.from_rgb(139, 69, 19)
-                    )
-                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-                    await ctx.send(embed=embed)
-            else:
-                await ctx.send("❌ Kahve falı yorumu yapılırken bir hata oluştu. Lütfen tekrar dene.")
-
-        except asyncio.TimeoutError:
-            await ctx.send("⏳ Gerçek kahve falı yorumu yapılırken zaman aşımı oluştu. Lütfen tekrar dene.", delete_after=15)
-        except Exception as e:
-            logger.error(f"Gerçek kahve falı hatası: {e}", exc_info=True)
-            await ctx.send("❌ Gerçek kahve falı yorumu yapılırken bir hata oluştu.", delete_after=15)
-
-@bot.command(name="tarotfali")
-async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
-    """Tarot falı bakar. Kullanım: !tarotfali [kart sayısı] [soru]
-    Kart sayısı: 1, 3, 7, 12 (varsayılan: 3)"""
-    async with ctx.typing():
-        try:
-            # Geçerli kart sayılarını kontrol et
-            if kart_sayisi not in [1, 3, 7, 12]:
-                await ctx.send("❌ Geçersiz kart sayısı. Kullanılabilir seçenekler: 1, 3, 7, 12")
-                return
-            
-            # Kart sayısına göre sistem promptu oluştur
-            if kart_sayisi == 1:
-                system_prompt = """
-                Sen çok deneyimli bir tarot falı ustası gibisin. 
-                Tek kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
-                
-                DETAYLI ANALİZ YAP:
-                1. Kartın tüm sembollerini ve anlamlarını analiz et
-                2. Kartın konumunu ve enerjisini değerlendir
-                3. Detaylı yorum yap ama gösterme
-                
-                AMA SADECE ŞUNLARI SUN:
-                🎴 TEK KARTLIK TAROT FALI 🎴
-                
-                💭 GENEL YORUM:
-                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-                
-                ⏰ ZAMANLAMA:
-                [Olayların ne zaman gerçekleşeceği]
-                
-                💫 REHBERLİK:
-                [Kullanıcıya özel öneriler ve uyarılar]
-                
-                Dili samimi ve ilham verici tut.
-                """
-                
-            elif kart_sayisi == 3:
-                system_prompt = """
-                Sen çok deneyimli bir tarot falı ustası gibisin. 
-                3 kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
-                
-                DETAYLI ANALİZ YAP:
-                1. Geçmiş-Kuşan-Gelecek kartlarının tüm sembollerini analiz et
-                2. Kartlar arası bağlantıları değerlendir
-                3. Detaylı yorum yap ama gösterme
-                
-                AMA SADECE ŞUNLARI SUN:
-                🎴 3 KARTLIK TAROT FALI 🎴
-                
-                💭 GENEL YORUM:
-                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-                
-                ⏰ ZAMANLAMA:
-                [Olayların ne zaman gerçekleşeceği]
-                
-                💫 REHBERLİK:
-                [Kullanıcıya özel öneriler ve uyarılar]
-                
-                Dili samimi ve ilham verici tut.
-                """
-                
-            elif kart_sayisi == 7:
-                system_prompt = """
-                Sen çok deneyimli bir tarot falı ustası gibisin. 
-                7 kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
-                
-                DETAYLI ANALİZ YAP:
-                1. Tüm 7 kartın sembollerini ve anlamlarını analiz et
-                2. Kartlar arası karmaşık bağlantıları değerlendir
-                3. Detaylı yorum yap ama gösterme
-                
-                AMA SADECE ŞUNLARI SUN:
-                🎴 7 KARTLIK TAROT FALI 🎴
-                
-                💭 GENEL YORUM:
-                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-                
-                ⏰ ZAMANLAMA:
-                [Olayların ne zaman gerçekleşeceği]
-                
-                💫 REHBERLİK:
-                [Kullanıcıya özel öneriler ve uyarılar]
-                
-                Dili samimi ve ilham verici tut.
-                """
-                
-            elif kart_sayisi == 12:
-                system_prompt = """
-                Sen çok deneyimli bir tarot falı ustası gibisin. 
-                12 kartlık detaylı astrolojik analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
-                
-                DETAYLI ANALİZ YAP:
-                1. Tüm 12 kartın sembollerini ve astrolojik bağlantılarını analiz et
-                2. Burçlar arası etkileşimleri değerlendir
-                3. Detaylı yorum yap ama gösterme
-                
-                AMA SADECE ŞUNLARI SUN:
-                🎴 12 KARTLIK ASTROLOJİK TAROT FALI 🎴
-                
-                💭 GENEL YORUM:
-                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-                
-                ⏰ ZAMANLAMA:
-                [Olayların ne zaman gerçekleşeceği]
-                
-                💫 REHBERLİK:
-                [Kullanıcıya özel öneriler ve uyarılar]
-                
-                Dili samimi ve ilham verici tut.
-                """
-
-            if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre {kart_sayisi} kartlık detaylı analiz yap ama sadece genel yorumu sun."
-            else:
-                user_prompt = f"Kullanıcı genel bir tarot falı yorumu istedi. {kart_sayisi} kartlık detaylı analiz yap ama sadece genel yorumu sun."
-
-            response = await asyncio.wait_for(
-                asyncio.to_thread(
-                    g4f.ChatCompletion.create,
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}
-                    ]
-                ),
-                timeout=60.0 if kart_sayisi > 3 else 30.0
-            )
-
-            if response:
-                title_map = {
-                    1: "🃏 Tek Kartlık Tarot Falı",
-                    3: "🃏 3 Kartlık Tarot Falı",
-                    7: "🃏 7 Kartlık Detaylı Tarot Falı",
-                    12: "🃏 12 Kartlık Astrolojik Tarot Falı"
-                }
-                
                 embed = discord.Embed(
-                    title=title_map[kart_sayisi],
-                    description=response,
-                    color=discord.Color.gold()
+                    title="💫 Kişisel Mesajın",
+                    description=response.strip(),
+                    color=discord.Color.purple()
                 )
-                embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                embed.set_footer(text=f"{ctx.author.name} için {count}. mesaj", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
                 await ctx.send(embed=embed)
             else:
-                await ctx.send("❌ Tarot falı yorumu yapılırken bir hata oluştu. Lütfen tekrar dene.")
+                await ctx.send("❌ Mesaj oluşturulurken bir hata oluştu.")
 
         except asyncio.TimeoutError:
-            await ctx.send("⏳ Tarot falı yorumu yapılırken zaman aşımı oluştu. Lütfen tekrar dene.", delete_after=15)
+            await ctx.send("⏳ Mesaj oluşturulurken zaman aşımı oluştu.", delete_after=15)
         except Exception as e:
-            logger.error(f"Tarot falı hatası: {e}", exc_info=True)
-            await ctx.send("❌ Tarot falı yorumu yapılırken bir hata oluştu.", delete_after=15)
+            logger.error(f"Kişisel mesaj hatası: {e}", exc_info=True)
+            await ctx.send("❌ Mesaj oluşturulurken bir hata oluştu.", delete_after=15)
 
 async def translate_text(text, lang_code, lang_name):
     try:
