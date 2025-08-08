@@ -63,16 +63,11 @@ async def kahvefali(ctx, *, soru: str = None):
             4. Geleneksel kahve falı yorum tekniklerini uygula
             5. Detaylı sembollerin analizini yap ama gösterme
             
-            AMA SADECE ŞUNLARI SUN:
-            ☕ GERÇEK KAHVE FALI ☕
-            
+            AMA SADECE ŞUNLARI SUN:            
             💭 GENEL YORUM:
             [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
-            
-            ⏰ ZAMANLAMA:
-            [Olayların ne zaman gerçekleşeceği]
-            
-            💫 REHBERLİK:
+
+            Olayların ne zaman gerçekleşeceği.
             [Kullanıcıya özel öneriler ve uyarılar]
             
             Dili samimi, geleneksel kahve falı ustaları gibi tut. 
