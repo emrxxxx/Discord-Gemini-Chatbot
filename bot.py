@@ -85,22 +85,11 @@ async def kahvefali(ctx, *, soru: str = None):
             - Hem fırsatları hem de dikkat edilmesi gereken noktaları göster
             
             YANIT FORMATI:
-            ☕ GERÇEK KAHVE FALI ☕
-            
-            🔍 FİNDEKİ ŞEKİLLER:
-            [Gözlemlenen şekilleri ve konumlarını listele]
-            
-            📖 ŞEKİL YORUMLARI:
-            [Her şeklin detaylı yorumu, olumlu/olumsuz anlamları]
-            
-            🎯 ANA MESAJ:
-            [Kahvenin verdiği ana mesaj, dengeli yaklaşım]
-            
-            ⏰ ZAMANLAMA:
-            [Olayların ne zaman gerçekleşeceği]
-            
-            💭 DETAYLI YORUM:
+
+            💭 YORUM:
             [Kapsamlı ve kişisel yorum, fırsatlar ve uyarılar]
+            [Olayların ne zaman gerçekleşeceği]
+            [Kahvenin verdiği ana mesaj, dengeli yaklaşım]
             
             💫 REHBERLİK:
             [Kullanıcıya özel öneriler, hem önlem hem gelişme]
