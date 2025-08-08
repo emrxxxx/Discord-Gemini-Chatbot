@@ -99,6 +99,53 @@ async def on_ready():
         print(f"❌ Ses kanalına bağlanırken hata oluştu: {e}")
         traceback.print_exc()
 
+@bot.command(name="kahvefali")
+async def kahvefali(ctx, *, soru: str = None):
+    """Kahve falı bakar. Kullanım: !kahvefali [isteğe bağlı soru]"""
+    async with ctx.typing():
+        try:
+            # Kahve falı yorumunu oluşturmak için sistem promptu
+            system_prompt = """
+            Sen tecrübeli bir kahve falı ustası gibisin. 
+            Kahve fincanındaki şekillere bakarak fal yorumu yapacaksın.
+            Yanıtların ilham verici, pozitif ve umut dolu olmalı.
+            Kullanıcıya kişisel rehberlik sunan bir ton kullan.
+            Fal yorumunu eğlenceli ve samimi bir dille yap.
+            Eğer kullanıcı belirli bir soru sorduysa, fal yorumunu bu soruya göre şekillendir.
+            """
+
+            # Kullanıcının sorusuna göre prompt oluşturma
+            if soru:
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre kahve falı yorumu yap."
+            else:
+                user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Rastgele ama anlamlı bir fal yorumu yap."
+
+            # GPT-4o-mini ile fal yorumu oluşturma
+            response = g4f.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
+            )
+
+            # Fal yorumunu kullanıcıya gönderme
+            if response:
+                # Embed ile daha güzel bir görünüm
+                embed = discord.Embed(
+                    title="☕ Kahve Falı",
+                    description=response,
+                    color=discord.Color.from_rgb(139, 69, 19)  # Kahve rengi
+                )
+                embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send("❌ Kahve falı yorumu yapılırken bir hata oluştu. Lütfen tekrar dene.")
+
+        except Exception as e:
+            logger.error(f"Kahve falı hatası: {e}", exc_info=True)
+            await ctx.send("❌ Kahve falı yorumu yapılırken bir hata oluştu.", delete_after=15)
+
 @bot.event
 async def on_message(message: discord.Message):
     if message.author.bot:
