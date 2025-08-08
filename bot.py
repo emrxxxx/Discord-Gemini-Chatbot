@@ -40,7 +40,7 @@ async def yardim(ctx):
     )
     embed.add_field(name="!ping", value="Botun çalışıp çalışmadığını kontrol eder", inline=False)
     embed.add_field(name="!kahvefali [soru]", value="Gerçek kahve falı bakar", inline=False)
-    embed.add_field(name="!tarotfali [soru]", value="7 kartlık detaylı tarot falı bakar", inline=False)
+    embed.add_field(name="!tarotfali [kart sayısı] [soru]", value="Tarot falı bakar (kart sayısı: 1, 3, 7, 12 - varsayılan: 3)", inline=False)
     embed.add_field(name="!hesapla <işlem>", value="Matematiksel işlem yapar (örn: 5 + 3)", inline=False)
     embed.add_field(name="!cevir <metin> -tr/-en", value="Metni çevirir", inline=False)
     embed.add_field(name="!yardim", value="Bu yardım menüsünü gösterir", inline=False)
@@ -159,40 +159,105 @@ async def kahvefali(ctx, *, soru: str = None):
             await ctx.send("❌ Gerçek kahve falı yorumu yapılırken bir hata oluştu.", delete_after=15)
 
 @bot.command(name="tarotfali")
-async def tarotfali(ctx, *, soru: str = None):
-    """7 kartlık detaylı tarot falı bakar. Kullanım: !tarotfali [isteğe bağlı soru]"""
+async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
+    """Tarot falı bakar. Kullanım: !tarotfali [kart sayısı] [soru]
+    Kart sayısı: 1, 3, 7, 12 (varsayılan: 3)"""
     async with ctx.typing():
         try:
-            system_prompt = """
-            Sen çok deneyimli bir tarot falı ustası ve mistik rehber gibisin. 
-            Kullanıcıya 7 kartlık kapsamlı ve detaylı bir tarot falı yorumu yapacaksın.
+            # Geçerli kart sayılarını kontrol et
+            if kart_sayisi not in [1, 3, 7, 12]:
+                await ctx.send("❌ Geçersiz kart sayısı. Kullanılabilir seçenekler: 1, 3, 7, 12")
+                return
             
-            7 KARTI SEÇ VE SADECE KART İSİMLERİNİ YAZ:
-            
-            🎴 1. KART - [Sadece kart adı]
-            🎴 2. KART - [Sadece kart adı]
-            🎴 3. KART - [Sadece kart adı]
-            🎴 4. KART - [Sadece kart adı]
-            🎴 5. KART - [Sadece kart adı]
-            🎴 6. KART - [Sadece kart adı]
-            🎴 7. KART - [Sadece kart adı]
-            
-            🔮 GENEL YORUM VE REHBERLİK
-            [7 kartın birleşimi, ana mesajlar ve öneriler]
-            
-            💫 ÖZET REHBERLİK
-            [Kullanıcı için en önemli 3 öneri]
-            
-            Dili samimi, mistik ama anlaşılır tut. Kullanıcı dostu ol. 
-            Kart isimlerini Türkçede bilinen isimler olarak yaz.
-            GENEL YORUM bölümünde 7 kartın nasıl birleştiğini ve ne anlama geldiğini açıkla.
-            ÖZET REHBERLİK bölümünde kullanıcıya 3 önemli öneri ver.
-            """
+            # Kart sayısına göre sistem promptu oluştur
+            if kart_sayisi == 1:
+                system_prompt = """
+                Sen çok deneyimli bir tarot falı ustası gibisin. 
+                Kullanıcıya tek kartlık güçlü ve odaklı bir tarot falı yorumu yapacaksın.
+                
+                TEK KARTI SEÇ VE YORUMLA:
+                🎴 [Kart Adı]
+                
+                DETAYLI YORUM:
+                - Kartın temel anlamı
+                - Kullanıcı için özel mesajı
+                - Zamanlama ve enerji
+                - Rehberlik ve öneriler
+                
+                Dili samimi ve ilham verici tut.
+                """
+                
+            elif kart_sayisi == 3:
+                system_prompt = """
+                Sen çok deneyimli bir tarot falı ustası gibisin. 
+                Kullanıcıya 3 kartlık klasik past-present-future tarot falı yorumu yapacaksın.
+                
+                3 KARTI ŞU SIRAYLA YORUMLA:
+                🎴 1. KART - Geçmiş/Kök Neden
+                🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
+                🎴 3. KART - Gelecek/Potansiyel Sonuç
+                
+                GENEL YORUM:
+                - 3 kartın birbiriyle bağlantısı
+                - Ana mesaj ve rehberlik
+                - Kullanıcı için öneriler
+                
+                Dili samimi ve ilham verici tut.
+                """
+                
+            elif kart_sayisi == 7:
+                system_prompt = """
+                Sen çok deneyimli bir tarot falı ustası gibisin. 
+                Kullanıcıya 7 kartlık kapsamlı ve detaylı bir tarot falı yorumu yapacaksın.
+                
+                7 KARTI ŞU SIRAYLA YORUMLA:
+                🎴 1. KART - Geçmiş/Kök Neden
+                🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
+                🎴 3. KART - Gelecek/Potansiyel Sonuç
+                🎴 4. KART - Bilinçaltı/Zihinsel Durum
+                🎴 5. KART - Duygusal Durum/Hisler
+                🎴 6. KART - Dış Etkiler/Çevre
+                🎴 7. KART - Sonuç/Rehberlik
+                
+                GENEL YORUM VE REHBERLİK:
+                - 7 kartın birleşimi ve ana mesajlar
+                - Kullanıcı için en önemli 3 öneri
+                
+                Dili samimi ve ilham verici tut.
+                """
+                
+            elif kart_sayisi == 12:
+                system_prompt = """
+                Sen çok deneyimli bir tarot falı ustası gibisin. 
+                Kullanıcıya 12 kartlık astrolojik tarot falı yorumu yapacaksın.
+                Her kart bir burçla ilişkilidir ve kullanıcı için kapsamlı bir yorum yapılır.
+                
+                12 KARTI ŞU SIRAYLA YORUMLA:
+                🎴 1. KART - Koç - Benlik ve irade
+                🎴 2. KART - Boğa - Değerler ve güvenlik  
+                🎴 3. KART - İkizler - İletişim ve zihin
+                🎴 4. KART - Yengeç - Duygular ve ev
+                🎴 5. KART - Aslan - Yaratıcılık ve ifade
+                🎴 6. KART - Başak - Hizmet ve sağlık
+                🎴 7. KART - Terazi - İlişkiler ve denge
+                🎴 8. KART - Akrep - Dönüşüm ve gizli güçler
+                🎴 9. KART - Yay - Genişlik ve felsefe
+                🎴 10. KART - Oğlak - Yapı ve başarı
+                🎴 11. KART - Kova - Yenilik ve dostluk
+                🎴 12. KART - Balık - Sezgi ve ruh
+                
+                GENEL YORUM:
+                - 12 kartın birleşimi ve yaşam haritası
+                - Güçlü enerjiler ve fırsatlar
+                - Gelişme alanları ve rehberlik
+                
+                Dili samimi ve ilham verici tut.
+                """
 
             if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre detaylı 7'li tarot falı yorumu yap."
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre {kart_sayisi} kartlık tarot falı yorumu yap."
             else:
-                user_prompt = "Kullanıcı genel bir tarot falı yorumu istedi. Detaylı ve kapsamlı 7'li tarot yorumu yap."
+                user_prompt = f"Kullanıcı genel bir tarot falı yorumu istedi. {kart_sayisi} kartlık detaylı tarot yorumu yap."
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -203,12 +268,19 @@ async def tarotfali(ctx, *, soru: str = None):
                         {"role": "user", "content": user_prompt}
                     ]
                 ),
-                timeout=45.0
+                timeout=60.0 if kart_sayisi > 3 else 30.0
             )
 
             if response:
+                title_map = {
+                    1: "🃏 Tek Kartlık Tarot Falı",
+                    3: "🃏 3 Kartlık Tarot Falı",
+                    7: "🃏 7 Kartlık Detaylı Tarot Falı",
+                    12: "🃏 12 Kartlık Astrolojik Tarot Falı"
+                }
+                
                 embed = discord.Embed(
-                    title="🃏 7 Kartlık Tarot Falı",
+                    title=title_map[kart_sayisi],
                     description=response,
                     color=discord.Color.gold()
                 )
