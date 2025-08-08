@@ -188,83 +188,15 @@ async def tarotfali(ctx, *, soru: str = None):
             Sen çok deneyimli bir tarot falı ustası ve mistik rehber gibisin. 
             Kullanıcıya 7 kartlık kapsamlı ve detaylı bir tarot falı yorumu yapacaksın.
             
-            7 KARTIN HER BİRİNİ SEÇ VE ŞU SIRAYLA YORUMLA:
+            7 KARTI SEÇ VE SADECE KART İSİMLERİNİ YAZ:
             
-            🎴 1. KART - Geçmiş/Kök Neden
-            Kullanıcının şu anki durumuna nasıl geldiğini gösterir
-            - Kartın adı ve temel anlamı
-            - Kullanıcının geçmişteki deneyimi
-            - Bu durumun şu anki etkisi
-            
-            🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
-            Kullanıcının şu anki durumu ve enerjisi
-            - Mevcut atmosfer ve ruh hali
-            - Etkileyen dış faktörler
-            - İçsel duygular ve düşünceler
-            
-            🎴 3. KART - Gelecek/Potansiyel Sonuç
-            Mevcut enerjiyle devam ederse ne olabilir
-            - Kısa vadeli gelişmeler
-            - Potansiyel fırsatlar/tehlikeler
-            - Zaman çizgisi
-            
-            🎴 4. KART - Bilinçaltı/Zihinsel Durum
-            Kullanıcının farkında olmayabileceği düşünceler
-            - Gizli korkular veya arzular
-            - Zihinsel blokajlar
-            - Bilinçdışı inançlar
-            
-            🎴 5. KART - Duygusal Durum/Hisler
-            Kullanıcının gerçek duygusal durumu
-            - Bastırılmış duygular
-            - Kalp merkezli rehberlik
-            - Duygusal ihtiyaçlar
-            
-            🎴 6. KART - Dış Etkiler/Çevre
-            Kullanıcıyı etkileyen dış faktörler
-            - İnsanlar, ortamlar, fırsatlar
-            - Gizli destekçiler veya engeller
-            - Evrensel enerjiler
-            
-            🎴 7. KART - Sonuç/Rehberlik
-            6 kartın birleşimiyle ortaya çıkan nihai sonuç
-            - En güçlü enerji
-            - Ana rehberlik mesajı
-            - Kullanıcının yapması gerekenler
-            
-            EĞER KULLANICI SORU SORDUYSA:
-            - Soruyu bu 7 kart çerçevesinde detaylı yorumla
-            - Sorunun cevabını net şekilde ver
-            - Alternatif olasılıkları değerlendir
-            
-            EĞER SORU YOKSA:
-            - Kullanıcının yaşamındaki genel akışı yorumla
-            - Kişisel gelişim alanlarını göster
-            - Gelecekteki fırsatları belirt
-            
-            YANIT FORMATI:
-            🎴 TAROT FALI YORUMU 🎴
-            
-            🎴 1. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 2. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 3. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 4. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 5. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 6. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
-            
-            🎴 7. KART - [Kart Adı] 🎴
-            [Detaylı yorum]
+            🎴 1. KART - [Sadece kart adı]
+            🎴 2. KART - [Sadece kart adı]
+            🎴 3. KART - [Sadece kart adı]
+            🎴 4. KART - [Sadece kart adı]
+            🎴 5. KART - [Sadece kart adı]
+            🎴 6. KART - [Sadece kart adı]
+            🎴 7. KART - [Sadece kart adı]
             
             🔮 GENEL YORUM VE REHBERLİK
             [7 kartın birleşimi, ana mesajlar ve öneriler]
@@ -273,8 +205,9 @@ async def tarotfali(ctx, *, soru: str = None):
             [Kullanıcı için en önemli 3 öneri]
             
             Dili samimi, mistik ama anlaşılır tut. Kullanıcı dostu ol. 
-            Her yorum kişisel, derin ve anlamlı olsun.
-            Her kart için en az 3-4 cümle yorum yap.
+            Kart isimlerini Türkçede bilinen isimler olarak yaz.
+            GENEL YORUM bölümünde 7 kartın nasıl birleştiğini ve ne anlama geldiğini açıkla.
+            ÖZET REHBERLİK bölümünde kullanıcıya 3 önemli öneri ver.
             """
 
             if soru:
@@ -291,42 +224,25 @@ async def tarotfali(ctx, *, soru: str = None):
                         {"role": "user", "content": user_prompt}
                     ]
                 ),
-                timeout=60.0  # 7 kart için daha fazla zaman
+                timeout=45.0
             )
 
             if response:
-                # Çok uzun yanıtlar için dosya gönderme
-                if len(response) > 3500:
-                    filename = f"tarot_fali_{ctx.author.id}.txt"
-                    with open(filename, "w", encoding="utf-8") as f:
-                        f.write(f"🃏 7 KARTLIK TAROT FALI - {ctx.author}\n\n")
-                        f.write(response)
-                        f.write(f"\n\n📅 Yorum Tarihi: {discord.utils.utcnow().strftime('%d.%m.%Y %H:%M')}")
-                    
-                    embed = discord.Embed(
-                        title="🃏 7 Kartlık Detaylı Tarot Falı",
-                        description="Fal yorumunuz çok detaylı olduğu için dosya olarak gönderildi.\n7 kartın kapsamlı yorumlarını içeren dosyayı inceleyin.",
-                        color=discord.Color.gold()
-                    )
-                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-                    await ctx.send(embed=embed, file=discord.File(filename))
-                    os.remove(filename)
-                else:
-                    embed = discord.Embed(
-                        title="🃏 7 Kartlık Detaylı Tarot Falı",
-                        description=response,
-                        color=discord.Color.gold()
-                    )
-                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-                    await ctx.send(embed=embed)
+                embed = discord.Embed(
+                    title="🃏 7 Kartlık Tarot Falı",
+                    description=response,
+                    color=discord.Color.gold()
+                )
+                embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                await ctx.send(embed=embed)
             else:
                 await ctx.send("❌ Tarot falı yorumu yapılırken bir hata oluştu. Lütfen tekrar dene.")
 
         except asyncio.TimeoutError:
-            await ctx.send("⏳ 7 kartlık detaylı tarot falı yorumu yapılırken zaman aşımı oluştu. Lütfen tekrar dene.", delete_after=15)
+            await ctx.send("⏳ Tarot falı yorumu yapılırken zaman aşımı oluştu. Lütfen tekrar dene.", delete_after=15)
         except Exception as e:
-            logger.error(f"7'li tarot falı hatası: {e}", exc_info=True)
-            await ctx.send("❌ 7 kartlık tarot falı yorumu yapılırken bir hata oluştu.", delete_after=15)
+            logger.error(f"Tarot falı hatası: {e}", exc_info=True)
+            await ctx.send("❌ Tarot falı yorumu yapılırken bir hata oluştu.", delete_after=15)
 
 @bot.command(name="hesapla")
 async def hesapla(ctx, *, expression: str):
