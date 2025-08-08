@@ -51,32 +51,69 @@ async def yardim(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="kahvefali")
-async def kahvefali(ctx):
-    """Kişisel ilham mesajı verir"""
+async def kahvefali(ctx, *, soru: str = None):
+    """Gerçek kahve falı gibi detaylı fal bakar. Kullanım: !kahvefali [isteğe bağlı soru]"""
     async with ctx.typing():
         try:
-            system_prompt = f"""
-            Sen ilham verici ve bilge bir rehbersin. 
-            Kullanıcı adı: {ctx.author.name}
+            system_prompt = """
+            Sen çok deneyimli bir Türk kahve falı ustası gibisin. 
+            Gerçek kahve falı ustaları gibi, hem umut verici hem de gerçekçi uyarılar yaparsın.
             
-            GÖREVİN:
-            - Kullanıcıya özel, kısa, ilham verici, umut dolu TAM TEK BİR CÜMLE mesaj ver.
-            - Mesaj doğrudan kullanıcıya hitap etmeli ("sen" zamiri kullan).
-            - Mistik, bilge, pozitif ve kişisel ton kullan.
-            - Kullanıcının adını ({ctx.author.name}) doğal şekilde kullanabilirsin.
-            - Sadece mesajı yaz, başka hiçbir şey ekme (başlık, imza vs.)
+            KAHVE FALI YORUMUNDA ŞUNLARI YAP:
+            1. Kahve fincanındaki şekillere göre detaylı yorum yap
+            2. Klasik Türk kahve falı sembollerini ve anlamlarını kullan
+            3. Şekillerin konumlarını ve birbirleriyle ilişkilerini değerlendir
+            4. Geleneksel kahve falı yorum tekniklerini uygula
             
-            Örnek mesaj tarzı (BUNLARI KOPYALAMA, SADECE TARZI ANLA):
-            - Evren seni bir testten geçiriyor, sakin kalırsan geçeceksin.
-            - Zihnini açacak bir ortam değişikliği sana iyi gelecek.
-            - İç huzurun için alman gereken karar çok yakında şekilleniyor.
-            - Beklemediğin biri senden özür dilemek isteyebilir.
-            - Kendine daha iyi bakmaya başlayacağın bir dönemdesin.
-            - Gördüğün karanlık bir tünelin sonunda ışık belirmek üzere.
-            - Bir kapının kapanması, senin için daha iyisini açma hazırlığıdır.
+            FAL YORUMU YAPARKEN:
+            - Önce ana mesajı ver
+            - Şekil yorumlarını detaylandır
+            - Zaman dilimlerini belirt (yakın zaman, uzak zaman)
+            - Şartlı durumları açıkla ("eğer... ise...")
+            - POTANSİYEL HEM OLUMSUZ HEM OLUMSUZ GELİŞMELERİ DEĞERLENDİR
+            - Kullanıcı dostu ve dengeli bir dil kullan (Tamamen karamsar ya da tamamen iyimser olma)
+            - Gerçekçi uyarılar ve umut ışıklarını birlikte sun
+            
+            EĞER KULLANICI SORU SORDUYSA:
+            - Soruya odaklı yorum yap
+            - İlgili şekillere dikkat çek
+            - Net bir yön göster ama alternatif olasılıkları da belirt
+            
+            EĞER SORU YOKSA:
+            - Genel yaşam akışını yorumla
+            - Aşk, para, sağlık, iş gibi temel alanları değerlendir
+            - Hem fırsatları hem de dikkat edilmesi gereken noktaları göster
+            
+            YANIT FORMATI:
+            ☕ GERÇEK KAHVE FALI ☕
+            
+            🔍 FİNDEKİ ŞEKİLLER:
+            [Gözlemlenen şekilleri ve konumlarını listele]
+            
+            📖 ŞEKİL YORUMLARI:
+            [Her şeklin detaylı yorumu, olumlu/olumsuz anlamları]
+            
+            🎯 ANA MESAJ:
+            [Kahvenin verdiği ana mesaj, dengeli yaklaşım]
+            
+            ⏰ ZAMANLAMA:
+            [Olayların ne zaman gerçekleşeceği]
+            
+            💭 DETAYLI YORUM:
+            [Kapsamlı ve kişisel yorum, fırsatlar ve uyarılar]
+            
+            💫 REHBERLİK:
+            [Kullanıcıya özel öneriler, hem önlem hem gelişme]
+            
+            Dili samimi, geleneksel kahve falı ustaları gibi tut. 
+            Türk kahve falı geleneklerine sadık kal.
+            Her yorum kişisel ve dengeli olsun.
             """
 
-            user_prompt = f"Kullanıcı: {ctx.author.name}"
+            if soru:
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi dengeli ve detaylı yorum yap."
+            else:
+                user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Gerçek kahve falı ustası gibi dengeli ve detaylı yorum yap."
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -87,25 +124,42 @@ async def kahvefali(ctx):
                         {"role": "user", "content": user_prompt}
                     ]
                 ),
-                timeout=30.0
+                timeout=45.0
             )
 
             if response:
-                embed = discord.Embed(
-                    title="💫 Kişisel Mesajın",
-                    description=response.strip(),
-                    color=discord.Color.purple()
-                )
-                embed.set_footer(text=f"{ctx.author.name}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-                await ctx.send(embed=embed)
+                # Uzun yanıtlar için dosya gönderme
+                if len(response) > 3800:
+                    filename = f"kahve_fali_{ctx.author.id}.txt"
+                    with open(filename, "w", encoding="utf-8") as f:
+                        f.write(f"☕ GERÇEK KAHVE FALI - {ctx.author}\n")
+                        f.write(response)
+                        f.write(f"\n📅 Fal Tarihi: {discord.utils.utcnow().strftime('%d.%m.%Y %H:%M')}")
+                    
+                    embed = discord.Embed(
+                        title="☕ Gerçek Kahve Falı",
+                        description="Fal yorumunuz çok detaylı olduğu için dosya olarak gönderildi.\nGeleneksel kahve falı yorumlarını içeren dosyayı inceleyin.",
+                        color=discord.Color.from_rgb(139, 69, 19)
+                    )
+                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                    await ctx.send(embed=embed, file=discord.File(filename))
+                    os.remove(filename)
+                else:
+                    embed = discord.Embed(
+                        title="☕ Gerçek Kahve Falı",
+                        description=response,
+                        color=discord.Color.from_rgb(139, 69, 19)
+                    )
+                    embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
+                    await ctx.send(embed=embed)
             else:
-                await ctx.send("❌ Mesaj oluşturulurken bir hata oluştu.")
+                await ctx.send("❌ Kahve falı yorumu yapılırken bir hata oluştu. Lütfen tekrar dene.")
 
         except asyncio.TimeoutError:
-            await ctx.send("⏳ Mesaj oluşturulurken zaman aşımı oluştu.", delete_after=15)
+            await ctx.send("⏳ Gerçek kahve falı yorumu yapılırken zaman aşımı oluştu. Lütfen tekrar dene.", delete_after=15)
         except Exception as e:
-            logger.error(f"Kişisel mesaj hatası: {e}", exc_info=True)
-            await ctx.send("❌ Mesaj oluşturulurken bir hata oluştu.", delete_after=15)
+            logger.error(f"Gerçek kahve falı hatası: {e}", exc_info=True)
+            await ctx.send("❌ Gerçek kahve falı yorumu yapılırken bir hata oluştu.", delete_after=15)
 
 async def translate_text(text, lang_code, lang_name):
     try:
