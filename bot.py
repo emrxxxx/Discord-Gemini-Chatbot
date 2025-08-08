@@ -6,7 +6,9 @@ import g4f
 import re
 import asyncio
 import logging
-from collections import deque
+from collections import deque, defaultdict
+import json
+import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +23,8 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 RADIO_URL = "http://shoutcast.radyogrup.com:1020/;"
 CHANNEL_ID = 1392962273374375959
 
-message_history = deque(maxlen=20)
+# Kullanıcı bazlı geçmiş saklama (son 10 mesaj)
+user_histories = defaultdict(lambda: deque(maxlen=10))
 
 # KOMUTLAR
 @bot.command(name="ping")
@@ -55,14 +58,11 @@ async def kahvefali(ctx, *, soru: str = None):
             system_prompt = """
             Sen çok deneyimli bir Türk kahve falı ustası gibisin. 
             Gerçek kahve falı ustalarının yaptığı gibi detaylı ve anlamlı yorumlar yapacaksın.
-            
             KAHVE FALI YORUMUNDA ŞUNLARI YAP:
-            
             1. Kahve fincanındaki şekillere göre detaylı yorum yap
             2. Klasik Türk kahve falı sembollerini ve anlamlarını kullan
             3. Şekillerin konumlarını ve birbirleriyle ilişkilerini değerlendir
             4. Geleneksel kahve falı yorum tekniklerini uygula
-            
             FAL YORUMU YAPARKEN:
             - Önce ana mesajı ver
             - Şekil yorumlarını detaylandır
@@ -70,38 +70,28 @@ async def kahvefali(ctx, *, soru: str = None):
             - Şartlı durumları açıkla ("eğer... ise...")
             - Pozitif ve negatif olasılıkları değerlendir
             - Kullanıcı dostu ve ilham verici ol
-            
             EĞER KULLANICI SORU SORDUYSA:
             - Soruya odaklı yorum yap
             - İlgili şekillere dikkat çek
             - Net cevap ver ama alternatifleri de göster
-            
             EĞER SORU YOKSA:
             - Genel yaşam akışını yorumla
             - Aşk, para, sağlık, iş gibi temel alanları değerlendir
             - Kişisel gelişim önerileri sun
-            
             YANIT FORMATI:
             ☕ GERÇEK KAHVE FALI ☕
-            
             🔍 FİNDEKİ ŞEKİLLER:
             [Gözlemlenen şekilleri ve konumlarını listele]
-            
             📖 ŞEKİL YORUMLARI:
             [Her şeklin detaylı yorumu]
-            
             🎯 ANA MESAJ:
             [Kahvenin verdiği ana mesaj]
-            
             ⏰ ZAMANLAMA:
             [Olayların ne zaman gerçekleşeceği]
-            
             💭 DETAYLI YORUM:
             [Kapsamlı ve kişisel yorum]
-            
             💫 REHBERLİK:
             [Kullanıcıya özel öneriler ve uyarılar]
-            
             Dili samimi, geleneksel kahve falı ustaları gibi tut. 
             Türk kahve falı geleneklerine sadık kal.
             Her yorum kişisel, anlamlı ve ilham verici olsun.
@@ -129,9 +119,9 @@ async def kahvefali(ctx, *, soru: str = None):
                 if len(response) > 3800:
                     filename = f"kahve_fali_{ctx.author.id}.txt"
                     with open(filename, "w", encoding="utf-8") as f:
-                        f.write(f"☕ GERÇEK KAHVE FALI - {ctx.author}\n\n")
+                        f.write(f"☕ GERÇEK KAHVE FALI - {ctx.author}\n")
                         f.write(response)
-                        f.write(f"\n\n📅 Fal Tarihi: {discord.utils.utcnow().strftime('%d.%m.%Y %H:%M')}")
+                        f.write(f"\n📅 Fal Tarihi: {discord.utils.utcnow().strftime('%d.%m.%Y %H:%M')}")
                     
                     embed = discord.Embed(
                         title="☕ Gerçek Kahve Falı",
@@ -174,16 +164,13 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
                 Kullanıcıya tek kartlık güçlü ve odaklı bir tarot falı yorumu yapacaksın.
-                
                 TEK KARTI SEÇ VE YORUMLA:
                 🎴 [Kart Adı]
-                
                 DETAYLI YORUM:
                 - Kartın temel anlamı
                 - Kullanıcı için özel mesajı
                 - Zamanlama ve enerji
                 - Rehberlik ve öneriler
-                
                 Dili samimi ve ilham verici tut.
                 """
                 
@@ -191,17 +178,14 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
                 Kullanıcıya 3 kartlık klasik past-present-future tarot falı yorumu yapacaksın.
-                
                 3 KARTI ŞU SIRAYLA YORUMLA:
                 🎴 1. KART - Geçmiş/Kök Neden
                 🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
                 🎴 3. KART - Gelecek/Potansiyel Sonuç
-                
                 GENEL YORUM:
                 - 3 kartın birbiriyle bağlantısı
                 - Ana mesaj ve rehberlik
                 - Kullanıcı için öneriler
-                
                 Dili samimi ve ilham verici tut.
                 """
                 
@@ -209,7 +193,6 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
                 Kullanıcıya 7 kartlık kapsamlı ve detaylı bir tarot falı yorumu yapacaksın.
-                
                 7 KARTI ŞU SIRAYLA YORUMLA:
                 🎴 1. KART - Geçmiş/Kök Neden
                 🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
@@ -218,11 +201,9 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 🎴 5. KART - Duygusal Durum/Hisler
                 🎴 6. KART - Dış Etkiler/Çevre
                 🎴 7. KART - Sonuç/Rehberlik
-                
                 GENEL YORUM VE REHBERLİK:
                 - 7 kartın birleşimi ve ana mesajlar
                 - Kullanıcı için en önemli 3 öneri
-                
                 Dili samimi ve ilham verici tut.
                 """
                 
@@ -231,7 +212,6 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
                 Kullanıcıya 12 kartlık astrolojik tarot falı yorumu yapacaksın.
                 Her kart bir burçla ilişkilidir ve kullanıcı için kapsamlı bir yorum yapılır.
-                
                 12 KARTI ŞU SIRAYLA YORUMLA:
                 🎴 1. KART - Koç - Benlik ve irade
                 🎴 2. KART - Boğa - Değerler ve güvenlik  
@@ -245,12 +225,10 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
                 🎴 10. KART - Oğlak - Yapı ve başarı
                 🎴 11. KART - Kova - Yenilik ve dostluk
                 🎴 12. KART - Balık - Sezgi ve ruh
-                
                 GENEL YORUM:
                 - 12 kartın birleşimi ve yaşam haritası
                 - Güçlü enerjiler ve fırsatlar
                 - Gelişme alanları ve rehberlik
-                
                 Dili samimi ve ilham verici tut.
                 """
 
@@ -340,11 +318,18 @@ async def translate_text(text, lang_code, lang_name):
     except Exception as e:
         return f"❌ Çeviri hatası: {e}"
 
-async def run_g4f_chat(channel_id, user_id, message):
+async def run_g4f_chat(channel_id, user_id, message, user_history):
     try:
-        history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in message_history])
-        system_prompt = "You are a helpful assistant. Speak in Turkish. Summarize the last 20 messages and respond clearly and contextually to the user's latest question. Be polite, concise, and avoid unnecessary details."
-        user_prompt = f"Previous messages:\n{history_context}\n\nUser ({user_id}) question: {message}"
+        # Kullanıcı geçmişini stringe çevir
+        history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in user_history])
+        
+        system_prompt = """You are a helpful assistant. Speak in Turkish. 
+        Consider the user's recent message history to provide more contextual responses.
+        Be polite, concise, and avoid unnecessary details.
+        If the user asks about previous conversations, refer to the history provided."""
+        
+        user_prompt = f"Recent conversation history:\n{history_context}\n\nUser ({user_id}) question: {message}"
+        
         logger.debug(f"System Prompt: {system_prompt}\nUser Prompt: {user_prompt}")
         
         response = await asyncio.wait_for(
@@ -415,10 +400,12 @@ async def on_message(message: discord.Message):
         
     if isinstance(message.channel, discord.DMChannel):
         return
-        
-    message_history.append({
+    
+    # Kullanıcı mesaj geçmişini güncelle
+    user_histories[str(message.author.id)].append({
         "author": str(message.author),
-        "content": message.content
+        "content": message.content,
+        "timestamp": datetime.datetime.now().isoformat()
     })
 
     ctx = await bot.get_context(message)
@@ -478,7 +465,9 @@ async def on_message(message: discord.Message):
         try:
             user_id = str(message.author.id)
             channel_id = message.channel.id
-            response_content = await run_g4f_chat(channel_id, user_id, message.content)
+            # Kullanıcıya özel geçmişi al
+            user_history = user_histories[user_id]
+            response_content = await run_g4f_chat(channel_id, user_id, message.content, user_history)
             if response_content:
                 await send_response_parts(message, response_content)
         except asyncio.TimeoutError:
