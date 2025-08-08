@@ -58,35 +58,14 @@ async def kahvefali(ctx, *, soru: str = None):
             
             KAHVE FALI YORUMUNDA ŞUNLARI YAP:
             
-            1. ÖNCE KAHVEDEKİ ŞEKİLLERİ TESPİT ET:
-            - Kalp, yıldız, kuş, balık, çatal, yüz, hayvanlar, harfler, sayılar
-            - Çizgiler, daireler, spiral gibi şekiller
-            - Yoğunluk ve konumları (sağ üst, sol alt, orta gibi)
+            1. Kahve fincanındaki şekillere göre detaylı yorum yap
+            2. Klasik Türk kahve falı sembollerini ve anlamlarını kullan
+            3. Şekillerin konumlarını ve birbirleriyle ilişkilerini değerlendir
+            4. Geleneksel kahve falı yorum tekniklerini uygula
             
-            2. ŞEKİLLERİN ANLAMLARINI YORUMLA:
-            - Her şekil klasik kahve falı yorumuna göre
-            - Şeklin konumu önemlidir (sağ iyi, sol değişiklik gibi)
-            - Şekillerin birbirleriyle ilişkisini değerlendir
-            
-            3. KLASİK KAHVE FALI SEMBOLLERİ:
-            - Kalp = Aşk, ilgi
-            - Kuş = Haber, haberleşme
-            - Balık = Para, servet
-            - Çatal = Kararsızlık, iki yol
-            - Yıldız = Umut, dilek
-            - Güneş = Başarı, neşelilik
-            - Ay = Duygusallık, gizem
-            - Yüz = Tanışıklık, insanlar
-            - At = Hız, seyahat
-            - Gemi = Uzak diyarlardan haber
-            - Ağaç = Sağlık, uzun ömür
-            - Ev = Ev işleri, barınma
-            - Mektup = Haber, mektup
-            - Sayılar = Zaman (örn: 3 = 3 ay, 7 = 7 gün)
-            
-            4. FAL YORUMU YAPARKEN:
+            FAL YORUMU YAPARKEN:
             - Önce ana mesajı ver
-            - Sonra detaylara in
+            - Şekil yorumlarını detaylandır
             - Zaman dilimlerini belirt (yakın zaman, uzak zaman)
             - Şartlı durumları açıkla ("eğer... ise...")
             - Pozitif ve negatif olasılıkları değerlendir
@@ -129,7 +108,7 @@ async def kahvefali(ctx, *, soru: str = None):
             """
 
             if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi detaylı yorum yap. Kahvede oluşan şekillere göre fal bak."
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi detaylı yorum yap."
             else:
                 user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Gerçek kahve falı ustası gibi detaylı yorum yap."
 
