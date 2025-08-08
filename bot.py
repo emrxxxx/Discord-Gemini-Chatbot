@@ -6,9 +6,7 @@ import g4f
 import re
 import asyncio
 import logging
-from collections import deque, defaultdict
-import json
-import datetime
+from collections import deque
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,8 +21,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 RADIO_URL = "http://shoutcast.radyogrup.com:1020/;"
 CHANNEL_ID = 1392962273374375959
 
-# Kullanıcı bazlı geçmiş saklama (son 10 mesaj)
-user_histories = defaultdict(lambda: deque(maxlen=10))
+message_history = deque(maxlen=20)
 
 # KOMUTLAR
 @bot.command(name="ping")
@@ -45,7 +42,7 @@ async def yardim(ctx):
     embed.add_field(name="!kahvefali [soru]", value="Gerçek kahve falı bakar", inline=False)
     embed.add_field(name="!tarotfali [kart sayısı] [soru]", value="Tarot falı bakar (kart sayısı: 1, 3, 7, 12 - varsayılan: 3)", inline=False)
     embed.add_field(name="!hesapla <işlem>", value="Matematiksel işlem yapar (örn: 5 + 3)", inline=False)
-    embed.add_field(name="!cevir <metin> -tr/-en", value="Metni çevirir", inline=False)
+    embed.add_field(name="<metin> -tr/-en", value="Metni çevirir", inline=False)
     embed.add_field(name="!yardim", value="Bu yardım menüsünü gösterir", inline=False)
     embed.set_footer(text="Bot @bot etiketlenerek de kullanabilirsiniz")
     await ctx.send(embed=embed)
@@ -57,50 +54,36 @@ async def kahvefali(ctx, *, soru: str = None):
         try:
             system_prompt = """
             Sen çok deneyimli bir Türk kahve falı ustası gibisin. 
-            Gerçek kahve falı ustalarının yaptığı gibi detaylı ve anlamlı yorumlar yapacaksın.
-            KAHVE FALI YORUMUNDA ŞUNLARI YAP:
-            1. Kahve fincanındaki şekillere göre detaylı yorum yap
+            Gerçek kahve falı ustalarının yaptığı gibi detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+            
+            DETAYLI ANALİZ YAP:
+            1. Kahve fincanındaki tüm şekillere göre detaylı yorum yap
             2. Klasik Türk kahve falı sembollerini ve anlamlarını kullan
             3. Şekillerin konumlarını ve birbirleriyle ilişkilerini değerlendir
             4. Geleneksel kahve falı yorum tekniklerini uygula
-            FAL YORUMU YAPARKEN:
-            - Önce ana mesajı ver
-            - Şekil yorumlarını detaylandır
-            - Zaman dilimlerini belirt (yakın zaman, uzak zaman)
-            - Şartlı durumları açıkla ("eğer... ise...")
-            - Pozitif ve negatif olasılıkları değerlendir
-            - Kullanıcı dostu ve ilham verici ol
-            EĞER KULLANICI SORU SORDUYSA:
-            - Soruya odaklı yorum yap
-            - İlgili şekillere dikkat çek
-            - Net cevap ver ama alternatifleri de göster
-            EĞER SORU YOKSA:
-            - Genel yaşam akışını yorumla
-            - Aşk, para, sağlık, iş gibi temel alanları değerlendir
-            - Kişisel gelişim önerileri sun
-            YANIT FORMATI:
+            5. Detaylı sembollerin analizini yap ama gösterme
+            
+            AMA SADECE ŞUNLARI SUN:
             ☕ GERÇEK KAHVE FALI ☕
-            🔍 FİNDEKİ ŞEKİLLER:
-            [Gözlemlenen şekilleri ve konumlarını listele]
-            📖 ŞEKİL YORUMLARI:
-            [Her şeklin detaylı yorumu]
-            🎯 ANA MESAJ:
-            [Kahvenin verdiği ana mesaj]
+            
+            💭 GENEL YORUM:
+            [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
+            
             ⏰ ZAMANLAMA:
             [Olayların ne zaman gerçekleşeceği]
-            💭 DETAYLI YORUM:
-            [Kapsamlı ve kişisel yorum]
+            
             💫 REHBERLİK:
             [Kullanıcıya özel öneriler ve uyarılar]
+            
             Dili samimi, geleneksel kahve falı ustaları gibi tut. 
             Türk kahve falı geleneklerine sadık kal.
             Her yorum kişisel, anlamlı ve ilham verici olsun.
             """
 
             if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi detaylı yorum yap."
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre gerçek kahve falı gibi detaylı analiz yap ama sadece genel yorumu sun."
             else:
-                user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Gerçek kahve falı ustası gibi detaylı yorum yap."
+                user_prompt = "Kullanıcı genel bir kahve falı yorumu istedi. Detaylı analiz yap ama sadece genel yorumu sun."
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -125,7 +108,7 @@ async def kahvefali(ctx, *, soru: str = None):
                     
                     embed = discord.Embed(
                         title="☕ Gerçek Kahve Falı",
-                        description="Fal yorumunuz çok detaylı olduğu için dosya olarak gönderildi.\nGeleneksel kahve falı yorumlarını içeren dosyayı inceleyin.",
+                        description="Fal yorumunuz çok detaylı olduğu için dosya olarak gönderildi.",
                         color=discord.Color.from_rgb(139, 69, 19)
                     )
                     embed.set_footer(text=f"Fal bakan: {ctx.author}", icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
@@ -163,79 +146,107 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
             if kart_sayisi == 1:
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
-                Kullanıcıya tek kartlık güçlü ve odaklı bir tarot falı yorumu yapacaksın.
-                TEK KARTI SEÇ VE YORUMLA:
-                🎴 [Kart Adı]
-                DETAYLI YORUM:
-                - Kartın temel anlamı
-                - Kullanıcı için özel mesajı
-                - Zamanlama ve enerji
-                - Rehberlik ve öneriler
+                Tek kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+                
+                DETAYLI ANALİZ YAP:
+                1. Kartın tüm sembollerini ve anlamlarını analiz et
+                2. Kartın konumunu ve enerjisini değerlendir
+                3. Detaylı yorum yap ama gösterme
+                
+                AMA SADECE ŞUNLARI SUN:
+                🎴 TEK KARTLIK TAROT FALI 🎴
+                
+                💭 GENEL YORUM:
+                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
+                
+                ⏰ ZAMANLAMA:
+                [Olayların ne zaman gerçekleşeceği]
+                
+                💫 REHBERLİK:
+                [Kullanıcıya özel öneriler ve uyarılar]
+                
                 Dili samimi ve ilham verici tut.
                 """
                 
             elif kart_sayisi == 3:
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
-                Kullanıcıya 3 kartlık klasik past-present-future tarot falı yorumu yapacaksın.
-                3 KARTI ŞU SIRAYLA YORUMLA:
-                🎴 1. KART - Geçmiş/Kök Neden
-                🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
-                🎴 3. KART - Gelecek/Potansiyel Sonuç
-                GENEL YORUM:
-                - 3 kartın birbiriyle bağlantısı
-                - Ana mesaj ve rehberlik
-                - Kullanıcı için öneriler
+                3 kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+                
+                DETAYLI ANALİZ YAP:
+                1. Geçmiş-Kuşan-Gelecek kartlarının tüm sembollerini analiz et
+                2. Kartlar arası bağlantıları değerlendir
+                3. Detaylı yorum yap ama gösterme
+                
+                AMA SADECE ŞUNLARI SUN:
+                🎴 3 KARTLIK TAROT FALI 🎴
+                
+                💭 GENEL YORUM:
+                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
+                
+                ⏰ ZAMANLAMA:
+                [Olayların ne zaman gerçekleşeceği]
+                
+                💫 REHBERLİK:
+                [Kullanıcıya özel öneriler ve uyarılar]
+                
                 Dili samimi ve ilham verici tut.
                 """
                 
             elif kart_sayisi == 7:
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
-                Kullanıcıya 7 kartlık kapsamlı ve detaylı bir tarot falı yorumu yapacaksın.
-                7 KARTI ŞU SIRAYLA YORUMLA:
-                🎴 1. KART - Geçmiş/Kök Neden
-                🎴 2. KART - Şimdiki Durum/Mevcut Enerji  
-                🎴 3. KART - Gelecek/Potansiyel Sonuç
-                🎴 4. KART - Bilinçaltı/Zihinsel Durum
-                🎴 5. KART - Duygusal Durum/Hisler
-                🎴 6. KART - Dış Etkiler/Çevre
-                🎴 7. KART - Sonuç/Rehberlik
-                GENEL YORUM VE REHBERLİK:
-                - 7 kartın birleşimi ve ana mesajlar
-                - Kullanıcı için en önemli 3 öneri
+                7 kartlık detaylı analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+                
+                DETAYLI ANALİZ YAP:
+                1. Tüm 7 kartın sembollerini ve anlamlarını analiz et
+                2. Kartlar arası karmaşık bağlantıları değerlendir
+                3. Detaylı yorum yap ama gösterme
+                
+                AMA SADECE ŞUNLARI SUN:
+                🎴 7 KARTLIK TAROT FALI 🎴
+                
+                💭 GENEL YORUM:
+                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
+                
+                ⏰ ZAMANLAMA:
+                [Olayların ne zaman gerçekleşeceği]
+                
+                💫 REHBERLİK:
+                [Kullanıcıya özel öneriler ve uyarılar]
+                
                 Dili samimi ve ilham verici tut.
                 """
                 
             elif kart_sayisi == 12:
                 system_prompt = """
                 Sen çok deneyimli bir tarot falı ustası gibisin. 
-                Kullanıcıya 12 kartlık astrolojik tarot falı yorumu yapacaksın.
-                Her kart bir burçla ilişkilidir ve kullanıcı için kapsamlı bir yorum yapılır.
-                12 KARTI ŞU SIRAYLA YORUMLA:
-                🎴 1. KART - Koç - Benlik ve irade
-                🎴 2. KART - Boğa - Değerler ve güvenlik  
-                🎴 3. KART - İkizler - İletişim ve zihin
-                🎴 4. KART - Yengeç - Duygular ve ev
-                🎴 5. KART - Aslan - Yaratıcılık ve ifade
-                🎴 6. KART - Başak - Hizmet ve sağlık
-                🎴 7. KART - Terazi - İlişkiler ve denge
-                🎴 8. KART - Akrep - Dönüşüm ve gizli güçler
-                🎴 9. KART - Yay - Genişlik ve felsefe
-                🎴 10. KART - Oğlak - Yapı ve başarı
-                🎴 11. KART - Kova - Yenilik ve dostluk
-                🎴 12. KART - Balık - Sezgi ve ruh
-                GENEL YORUM:
-                - 12 kartın birleşimi ve yaşam haritası
-                - Güçlü enerjiler ve fırsatlar
-                - Gelişme alanları ve rehberlik
+                12 kartlık detaylı astrolojik analiz yapacaksın ama sadece genel yorumu kullanıcıya sunacaksın.
+                
+                DETAYLI ANALİZ YAP:
+                1. Tüm 12 kartın sembollerini ve astrolojik bağlantılarını analiz et
+                2. Burçlar arası etkileşimleri değerlendir
+                3. Detaylı yorum yap ama gösterme
+                
+                AMA SADECE ŞUNLARI SUN:
+                🎴 12 KARTLIK ASTROLOJİK TAROT FALI 🎴
+                
+                💭 GENEL YORUM:
+                [Sadece genel yorumu ver. Detaylı analizlerin sonucunu özetle ve kullanıcı dostu şekilde sun.]
+                
+                ⏰ ZAMANLAMA:
+                [Olayların ne zaman gerçekleşeceği]
+                
+                💫 REHBERLİK:
+                [Kullanıcıya özel öneriler ve uyarılar]
+                
                 Dili samimi ve ilham verici tut.
                 """
 
             if soru:
-                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre {kart_sayisi} kartlık tarot falı yorumu yap."
+                user_prompt = f"Kullanıcının sorusu: '{soru}'. Bu soruya göre {kart_sayisi} kartlık detaylı analiz yap ama sadece genel yorumu sun."
             else:
-                user_prompt = f"Kullanıcı genel bir tarot falı yorumu istedi. {kart_sayisi} kartlık detaylı tarot yorumu yap."
+                user_prompt = f"Kullanıcı genel bir tarot falı yorumu istedi. {kart_sayisi} kartlık detaylı analiz yap ama sadece genel yorumu sun."
 
             response = await asyncio.wait_for(
                 asyncio.to_thread(
@@ -273,33 +284,6 @@ async def tarotfali(ctx, kart_sayisi: int = 3, *, soru: str = None):
             logger.error(f"Tarot falı hatası: {e}", exc_info=True)
             await ctx.send("❌ Tarot falı yorumu yapılırken bir hata oluştu.", delete_after=15)
 
-@bot.command(name="hesapla")
-async def hesapla(ctx, *, expression: str):
-    """Matematiksel işlem yapar"""
-    pattern = r'(\d+)\s*([+\-*/])\s*(\d+)'
-    match = re.search(pattern, expression)
-
-    if match:
-        num1 = float(match.group(1))
-        operator = match.group(2)
-        num2 = float(match.group(3))
-
-        if operator == '+':
-            result = num1 + num2
-        elif operator == '-':
-            result = num1 - num2
-        elif operator == '*':
-            result = num1 * num2
-        elif operator == '/':
-            if num2 == 0:
-                await ctx.send("HATA: Sıfıra bölme!")
-                return
-            result = num1 / num2
-
-        await ctx.send(f"Sonuç: {result}")
-    else:
-        await ctx.send("❌ Geçersiz işlem formatı. Örnek: `5 + 3`")
-
 async def translate_text(text, lang_code, lang_name):
     try:
         prompt = f"Please translate the following text to {lang_name}:\n\n{text}"
@@ -318,18 +302,11 @@ async def translate_text(text, lang_code, lang_name):
     except Exception as e:
         return f"❌ Çeviri hatası: {e}"
 
-async def run_g4f_chat(channel_id, user_id, message, user_history):
+async def run_g4f_chat(channel_id, user_id, message):
     try:
-        # Kullanıcı geçmişini stringe çevir
-        history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in user_history])
-        
-        system_prompt = """You are a helpful assistant. Speak in Turkish. 
-        Consider the user's recent message history to provide more contextual responses.
-        Be polite, concise, and avoid unnecessary details.
-        If the user asks about previous conversations, refer to the history provided."""
-        
-        user_prompt = f"Recent conversation history:\n{history_context}\n\nUser ({user_id}) question: {message}"
-        
+        history_context = "\n".join([f"{msg['author']}: {msg['content']}" for msg in message_history])
+        system_prompt = "You are a helpful assistant. Speak in Turkish. Summarize the last 20 messages and respond clearly and contextually to the user's latest question. Be polite, concise, and avoid unnecessary details."
+        user_prompt = f"Previous messages:\n{history_context}\n\nUser ({user_id}) question: {message}"
         logger.debug(f"System Prompt: {system_prompt}\nUser Prompt: {user_prompt}")
         
         response = await asyncio.wait_for(
@@ -400,12 +377,10 @@ async def on_message(message: discord.Message):
         
     if isinstance(message.channel, discord.DMChannel):
         return
-    
-    # Kullanıcı mesaj geçmişini güncelle
-    user_histories[str(message.author.id)].append({
+        
+    message_history.append({
         "author": str(message.author),
-        "content": message.content,
-        "timestamp": datetime.datetime.now().isoformat()
+        "content": message.content
     })
 
     ctx = await bot.get_context(message)
@@ -465,9 +440,7 @@ async def on_message(message: discord.Message):
         try:
             user_id = str(message.author.id)
             channel_id = message.channel.id
-            # Kullanıcıya özel geçmişi al
-            user_history = user_histories[user_id]
-            response_content = await run_g4f_chat(channel_id, user_id, message.content, user_history)
+            response_content = await run_g4f_chat(channel_id, user_id, message.content)
             if response_content:
                 await send_response_parts(message, response_content)
         except asyncio.TimeoutError:
