@@ -45,7 +45,7 @@ async def yardim(ctx):
     embed.add_field(name="!ping", value="Botun çalışıp çalışmadığını kontrol eder", inline=False)
     embed.add_field(name="!kahvefali", value="Kişisel ilham mesajı al", inline=False)
     embed.add_field(name="!hesapla <işlem>", value="Matematiksel işlem yapar (örn: 5 + 3)", inline=False)
-    embed.add_field(name="!cevir <metin> -tr/-en", value="Metni çevirir", inline=False)
+    embed.add_field(name="<metin> -tr/-en", value="Metni çevirir", inline=False)
     embed.add_field(name="!yardim", value="Bu yardım menüsünü gösterir", inline=False)
     embed.set_footer(text="Bot @bot etiketlenerek de kullanabilirsiniz")
     await ctx.send(embed=embed)
