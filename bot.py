@@ -44,7 +44,7 @@ async def on_message(message: discord.Message):
     history.append({"role": "user", "content": content})
 
     # Geçmişi maksimum 10 mesaj ile sınırla
-    if len(history) > 10:
+    if len(history) > 500:
         history.pop(0)
 
     try:
@@ -56,7 +56,18 @@ async def on_message(message: discord.Message):
                     g4f.ChatCompletion.create,
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "Sen Türkçe konuşan, samimi ve yardımcı bir asistansın. Kullanıcıya nazik ve açık cevaplar ver."},
+                        {"role": "system", "content": """Sen GPT-5 tabanlı bir yapay zekâ sohbet asistanısın. 
+Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
+sorularına net ve doğru cevaplar vermek. 
+
+Kurallar:
+- Yanıtların samimi, kibar ve anlaşılır olsun.
+- Gereksiz uzun açıklamalardan kaçın, ama soruları gerektiğinde derinlemesine açıkla.
+- Kullanıcının isteğine göre teknik, eğlenceli, ciddi veya gündelik bir üslup kullanabil.
+- Kendini "asistan" olarak tanıt, insan gibi davran ama her zaman dürüst ol: 
+  yapabileceklerini ve yapamayacaklarını açıkça belirt.
+- Kullanıcının diline (Türkçe veya başka) uyum sağla.
+- Sohbeti ilerletecek doğal tepkiler ver, gerektiğinde soru sorabilirsin."""},
                         *history
                     ]
                 ),
