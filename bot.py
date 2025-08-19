@@ -28,8 +28,10 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
 
-    # Sadece DM kabul et
-    if not isinstance(message.channel, discord.DMChannel):
+    # Sadece DM veya belirli bir kanalda çalışsın
+    allowed_channel_id = 123456789012345678  # kendi kanal ID'ni buraya yaz
+    
+    if not isinstance(message.channel, discord.DMChannel) and message.channel.id != allowed_channel_id:
         return
 
     user_id = str(message.author.id)
