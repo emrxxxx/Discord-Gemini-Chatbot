@@ -29,7 +29,7 @@ async def on_message(message: discord.Message):
         return
 
     # Sadece DM veya belirli bir kanalda çalışsın
-    allowed_channel_id = 123456789012345678  # kendi kanal ID'ni buraya yaz
+    allowed_channel_id = 1407490717676343296  # kendi kanal ID'ni buraya yaz
     
     if not isinstance(message.channel, discord.DMChannel) and message.channel.id != allowed_channel_id:
         return
