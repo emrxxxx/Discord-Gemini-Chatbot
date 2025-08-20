@@ -61,8 +61,8 @@ async def on_message(message: discord.Message):
             response = await asyncio.wait_for(
                 asyncio.to_thread(
                     g4f.ChatCompletion.create,
-                    model="gpt-4o",
-                    provider=g4f.Provider.ChatgptLogin,
+                    model="gpt-5",
+                    provider=g4f.Provider.Copilot,
                     messages=messages
                 ),
                 timeout=30.0
