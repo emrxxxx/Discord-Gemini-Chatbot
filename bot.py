@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 user_histories = {}
 base_system_prompt = {
     "role": "system",
-    "content": """Sen GPT-5 tabanlı bir yapay zekâ sohbet asistanısın. 
+    "content": """Sen GPT-4.1 tabanlı bir yapay zekâ sohbet asistanısın. 
 Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
 sorularına net ve doğru cevaplar vermek. 
 
@@ -61,8 +61,7 @@ async def on_message(message: discord.Message):
             response = await asyncio.wait_for(
                 asyncio.to_thread(
                     g4f.ChatCompletion.create,
-                    model="gpt-5",
-                    provider=g4f.Provider.Copilot,
+                    model="gpt-4.1",
                     messages=messages
                 ),
                 timeout=30.0
