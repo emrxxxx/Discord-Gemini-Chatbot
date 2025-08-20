@@ -78,7 +78,7 @@ async def on_message(message: discord.Message):
                 asyncio.to_thread(
                     g4f.ChatCompletion.create,
                     model="gpt-4o",                     # En güçlü ücretsiz GPT-4 sürümü
-                    provider=g4f.Provider.Bing,   # Provider seçildi
+                    provider=g4f.Provider.ChatgptLogin,   # Provider seçildi
                     messages=messages
                 ),
                 timeout=30.0
