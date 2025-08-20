@@ -56,7 +56,8 @@ async def on_message(message: discord.Message):
             response = await asyncio.wait_for(
                 asyncio.to_thread(
                     g4f.ChatCompletion.create,
-                    model="gpt-4o-mini",
+                    model="gpt-4o",
+                    provider=g4f.Provider.DeepInfra,
                     messages=[
                         {"role": "system", "content": """Sen GPT-5 tabanlı bir yapay zekâ sohbet asistanısın. 
 Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
