@@ -17,6 +17,23 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Sohbet geçmişi (kullanıcı bazlı)
 user_histories = {}
 
+# System prompt (her zaman başa eklenir)
+base_system_prompt = {
+    "role": "system",
+    "content": """Sen GPT-5 tabanlı bir yapay zekâ sohbet asistanısın. 
+Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
+sorularına net ve doğru cevaplar vermek. 
+
+Kurallar:
+- Yanıtların samimi, kibar ve anlaşılır olsun.
+- Gereksiz uzun açıklamalardan kaçın, ama soruları gerektiğinde derinlemesine açıkla.
+- Kullanıcının isteğine göre teknik, eğlenceli, ciddi veya gündelik bir üslup kullanabil.
+- Kendini "asistan" olarak tanıt, insan gibi davran ama her zaman dürüst ol: 
+  yapabileceklerini ve yapamayacaklarını açıkça belirt.
+- Kullanıcının diline (Türkçe veya başka) uyum sağla.
+- Sohbeti ilerletecek doğal tepkiler ver, gerektiğinde soru sorabilirsin."""
+}
+
 @bot.event
 async def on_ready():
     print(f"✅ Bot giriş yaptı: {bot.user}")
@@ -37,17 +54,21 @@ async def on_message(message: discord.Message):
     user_id = str(message.author.id)
     content = message.content.strip()
 
-    # Geçmiş sohbetleri sakla (son 10 mesaj)
+    # Geçmiş sohbetleri sakla (son 500 mesaj)
     if user_id not in user_histories:
         user_histories[user_id] = []
+
     history = user_histories[user_id]
 
     # Kullanıcı mesajını geçmişe ekle
     history.append({"role": "user", "content": content})
 
-    # Geçmişi maksimum 10 mesaj ile sınırla
+    # Geçmişi maksimum 500 mesaj ile sınırla
     if len(history) > 500:
         history.pop(0)
+
+    # Final messages (system + history)
+    messages = [base_system_prompt] + history
 
     try:
         # Typing efekti
@@ -56,23 +77,9 @@ async def on_message(message: discord.Message):
             response = await asyncio.wait_for(
                 asyncio.to_thread(
                     g4f.ChatCompletion.create,
-                    model="gpt-4o",
-                    provider=g4f.Provider.DeepInfra,
-                    messages=[
-                        {"role": "system", "content": """Sen GPT-5 tabanlı bir yapay zekâ sohbet asistanısın. 
-Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
-sorularına net ve doğru cevaplar vermek. 
-
-Kurallar:
-- Yanıtların samimi, kibar ve anlaşılır olsun.
-- Gereksiz uzun açıklamalardan kaçın, ama soruları gerektiğinde derinlemesine açıkla.
-- Kullanıcının isteğine göre teknik, eğlenceli, ciddi veya gündelik bir üslup kullanabil.
-- Kendini "asistan" olarak tanıt, insan gibi davran ama her zaman dürüst ol: 
-  yapabileceklerini ve yapamayacaklarını açıkça belirt.
-- Kullanıcının diline (Türkçe veya başka) uyum sağla.
-- Sohbeti ilerletecek doğal tepkiler ver, gerektiğinde soru sorabilirsin."""},
-                        *history
-                    ]
+                    model="gpt-4o",                     # En güçlü ücretsiz GPT-4 sürümü
+                    provider=g4f.Provider.DeepInfra,   # Provider seçildi
+                    messages=messages
                 ),
                 timeout=30.0
             )
