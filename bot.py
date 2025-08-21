@@ -6,6 +6,7 @@ import asyncio
 import logging
 from collections import deque
 from typing import Dict, Optional
+import io
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -94,12 +95,7 @@ async def process_user_messages(user_id: str):
                     await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
                 elif response:
                     history.append(response)
-                    # Split long messages if needed
-                    if len(response) > 2000:
-                        for i in range(0, len(response), 2000):
-                            await message.channel.send(response[i:i+2000])
-                    else:
-                        await message.channel.send(response)
+                    await send_response(message.channel, response)
                 else:
                     await message.channel.send("❌ Yanıt alınamadı, lütfen tekrar dene.")
             
@@ -158,6 +154,24 @@ async def generate_ai_response(messages: list) -> Optional[str]:
                 return None
                 
     return None
+
+async def send_response(channel, response: str):
+    """Send response with smart formatting - normal, embed, or file."""
+    if len(response) <= 2000:
+        # Normal mesaj
+        await channel.send(response)
+    elif len(response) <= 4096:
+        # Embed ile gönder
+        embed = discord.Embed(
+            description=response,
+            color=0x00ff00
+        )
+        await channel.send(embed=embed)
+    else:
+        # Dosya olarak gönder
+        file_content = io.BytesIO(response.encode('utf-8'))
+        file = discord.File(file_content, filename="yanit.txt")
+        await channel.send("Yanıt çok uzun, dosya olarak gönderiyorum:", file=file)
 
 def is_message_allowed(message: discord.Message) -> bool:
     """Check if message is from allowed channel or DM."""
