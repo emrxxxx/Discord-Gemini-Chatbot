@@ -7,6 +7,8 @@ import logging
 from collections import deque
 from typing import Dict, Optional
 import io
+import json
+import signal
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -49,6 +51,32 @@ try:
 except Exception as e:
     logger.error(f"Gemini API yapılandırma hatası: {e}")
     model = None
+
+def save_user_data():
+    """Save user histories and queues to a file."""
+    data = {
+        "user_histories": {user_id: list(history) for user_id, history in user_histories.items()},
+        "user_queues": {user_id: list(queue._queue) for user_id, queue in user_queues.items()}
+    }
+    with open("user_data.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    logger.info("User data saved to user_data.json")
+
+def load_user_data():
+    """Load user histories and queues from a file."""
+    global user_histories, user_queues
+    try:
+        with open("user_data.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            user_histories = {user_id: deque(history, maxlen=MAX_HISTORY_LENGTH) 
+                            for user_id, history in data.get("user_histories", {}).items()}
+            user_queues = {user_id: asyncio.Queue() for user_id in data.get("user_queues", {})}
+            for user_id, queue_items in data.get("user_queues", {}).items():
+                for item in queue_items:
+                    user_queues[user_id].put_nowait(item)
+        logger.info("User data loaded from user_data.json")
+    except FileNotFoundError:
+        logger.info("No user data file found, starting fresh.")
 
 async def get_user_history(user_id: str) -> deque:
     """Get or create user conversation history."""
@@ -182,6 +210,24 @@ def is_message_allowed(message: discord.Message) -> bool:
 async def on_ready():
     logger.info(f"✅ Bot giriş yaptı: {bot.user}")
     await bot.change_presence(activity=discord.Game(name="Özel Mesajlarda Sohbet"))
+    asyncio.create_task(periodic_save())
+
+async def periodic_save():
+    """Periodically save user data."""
+    while True:
+        save_user_data()
+        await asyncio.sleep(300)  # Her 5 dakikada bir kaydet
+
+def handle_shutdown(signum, frame):
+    """Handle bot shutdown and save data."""
+    logger.info("Bot is shutting down, saving user data...")
+    save_user_data()
+    bot.loop.stop()
+    bot.loop.run_until_complete(bot.loop.shutdown_asyncgens())
+    bot.loop.close()
+
+signal.signal(signal.SIGINT, handle_shutdown)
+signal.signal(signal.SIGTERM, handle_shutdown)
 
 @bot.event
 async def on_message(message: discord.Message):
@@ -219,6 +265,9 @@ def main():
     if not model:
         logger.error("❌ Gemini API başlatılamadı!")
         return
+    
+    # Load user data at startup
+    load_user_data()
     
     try:
         bot.run(token)
