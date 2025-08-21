@@ -28,7 +28,7 @@ user_queues: Dict[str, asyncio.Queue] = {}
 processing_users: set = set()
 
 # System prompt
-SYSTEM_PROMPT = """Sen Gemini 2.5 Pro tabanlı bir yapay zekâ sohbet asistanısın. 
+SYSTEM_PROMPT = """Sen Gemini 2.5 Flash tabanlı bir yapay zekâ sohbet asistanısın. 
 Amacın kullanıcıyla doğal, akıcı ve insana yakın bir şekilde sohbet etmek, 
 sorularına net ve doğru cevaplar vermek. 
 
@@ -44,7 +44,7 @@ Kurallar:
 # Initialize Gemini
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel("gemini-2.5-pro")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 except Exception as e:
     logger.error(f"Gemini API yapılandırma hatası: {e}")
     model = None
