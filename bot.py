@@ -164,7 +164,7 @@ async def send_response(channel, response: str):
         # Embed ile gönder
         embed = discord.Embed(
             description=response,
-            color=0x00ff00
+            color=0x23272A
         )
         await channel.send(embed=embed)
     else:
