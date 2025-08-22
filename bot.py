@@ -9,7 +9,7 @@ import sys
 
 # === CONFIGURATION FROM ENVIRONMENT VARIABLES ===
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 # CHANNEL_ID boşsa varsayılanı kullan
 CHANNEL_ID_STR = os.getenv('CHANNEL_ID', '')
@@ -31,12 +31,12 @@ if not DISCORD_TOKEN:
     logging.error("DISCORD_TOKEN environment variable not set!")
     sys.exit(1)
 
-if not GEMINI_API_KEY:
-    logging.error("GEMINI_API_KEY environment variable not set!")
+if not GOOGLE_API_KEY:
+    logging.error("GOOGLE_API_KEY environment variable not set!")
     sys.exit(1)
 
 # === GEMINI SETUP ===
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 # === DATA FILE HANDLING ===
