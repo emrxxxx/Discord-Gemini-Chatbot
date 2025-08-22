@@ -10,7 +10,14 @@ import sys
 # === CONFIGURATION FROM ENVIRONMENT VARIABLES ===
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-CHANNEL_ID = int(os.getenv('CHANNEL_ID', 1407490717676343296))
+
+# CHANNEL_ID boşsa varsayılanı kullan
+CHANNEL_ID_STR = os.getenv('CHANNEL_ID', '')
+if CHANNEL_ID_STR:
+    CHANNEL_ID = int(CHANNEL_ID_STR)
+else:
+    CHANNEL_ID = 1407490717676343296  # Varsayılan kanal ID
+
 MAX_HISTORY = 20
 TIMEOUT = 30
 MAX_RETRIES = 3
@@ -139,6 +146,7 @@ async def send_response(channel, response_text):
 async def main():
     """Ana fonksiyon"""
     logging.info("Starting Discord Gemini Bot")
+    logging.info(f"Target channel ID: {CHANNEL_ID}")
     
     # Geçmişleri yükle
     user_histories = load_histories()
@@ -158,7 +166,7 @@ async def main():
             await client.close()
             return
             
-        logging.info(f"Processing channel: {channel.name}")
+        logging.info(f"Processing channel: {channel.name} (ID: {channel.id})")
         
         # Son mesajları al
         messages = await get_last_messages(channel, MESSAGES_TO_CHECK)
