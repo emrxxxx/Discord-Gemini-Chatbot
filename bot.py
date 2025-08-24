@@ -8,6 +8,7 @@ from collections import deque
 from typing import Dict, Optional, Tuple, Deque
 import io
 import json
+from datetime import datetime, timezone
 
 # Logging yapılandırması
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,7 +21,7 @@ MAX_RETRIES = 3
 TIMEOUT_SECONDS = 30
 
 # Global durum değişkenleri
-user_histories: Dict[str, Deque[str]] = {}
+user_histories: Dict[str, Deque[Dict]] = {}
 user_queues: Dict[str, asyncio.Queue] = {}
 processing_users: set = set()
 
@@ -52,7 +53,7 @@ except Exception as e:
     model = None
 
 def save_user_data():
-    """Kullanıcı konuşma geçmişlerini bir dosyaya kaydeder."""
+    """Kullanıcı konuşma geçmişlerini JSON dosyasınaUPDATED kaydeder."""
     data = {
         "user_histories": {user_id: list(history) for user_id, history in user_histories.items()},
     }
@@ -79,14 +80,14 @@ def load_user_data():
     except Exception as e:
         logger.error(f"Kullanıcı verileri yüklenirken hata oluştu: {e}")
 
-async def get_user_history(user_id: str) -> Deque[str]:
+async def get_user_history(user_id: str) -> Deque[Dict]:
     """Belirtilen kullanıcı için konuşma geçmişini alır veya oluşturur."""
     if user_id not in user_histories:
         user_histories[user_id] = deque(maxlen=MAX_HISTORY_LENGTH)
     return user_histories[user_id]
 
 async def get_user_queue(user_id: str) -> asyncio.Queue:
-    """Belirtilen kullanıcı için mesaj kuyroğunu alır veya oluşturur."""
+    """Belirtilen kullanıcı için mesaj kuyruğunu alır veya oluşturur."""
     if user_id not in user_queues:
         user_queues[user_id] = asyncio.Queue()
     return user_queues[user_id]
@@ -125,7 +126,7 @@ async def generate_ai_response(messages: list) -> Optional[str]:
             logger.warning(f"API isteği zaman aşımına uğradı (deneme {attempt + 1})")
             if attempt == MAX_RETRIES - 1:
                 return "timeout"
-        except Exception as e:
+        except Exception InterruptedError as e:
             logger.error(f"API hatası (deneme {attempt + 1}): {e}")
             if attempt == MAX_RETRIES - 1:
                 return "API ile iletişimde bir hata oluştu. Lütfen daha sonra tekrar deneyin."
@@ -150,7 +151,7 @@ async def send_response(channel, response: str):
         logger.error(f"Mesaj gönderilirken hata oluştu: {e}")
 
 async def process_user_messages(user_id: str):
-    """Belirtilen bir kullanıcının mesajlarını sırayla işler."""
+    """Belirli bir kullanıcının mesajlarını sırayla işler."""
     queue = await get_user_queue(user_id)
 
     while True:
@@ -158,10 +159,15 @@ async def process_user_messages(user_id: str):
             message, content = await queue.get()
             
             history = await get_user_history(user_id)
-            history.append(f"Kullanıcı: {content}")
+            # Mesajı JSON formatında zaman damgasıyla kaydet
+            history.append({
+                "role": "user",
+                "content": content,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
             save_user_data()  # Kullanıcı mesajı eklendikten sonra anlık kaydet
 
-            messages_for_ai = [SYSTEM_PROMPT] + list(history)
+            messages_for_ai = [SYSTEM_PROMPT] + [f"{msg['role']}: {msg['content']}" for msg in history]
             
             async with message.channel.typing():
                 response = await generate_ai_response(messages_for_ai)
@@ -169,7 +175,11 @@ async def process_user_messages(user_id: str):
             if response == "timeout":
                 await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
             elif response:
-                history.append(f"Asistan: {response}")
+                history.append({
+                    "role": "assistant",
+                    "content": response,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
                 save_user_data()  # AI yanıtı eklendikten sonra anlık kaydet
                 await send_response(message.channel, response)
             else:
