@@ -115,22 +115,19 @@ async def process_user_messages(user_id: str):
             # Prepare messages for AI
             messages = [SYSTEM_PROMPT] + list(history)
 
-            # 2 saniye bekle
+            # API hız sınırına takılmamak için kısa bir bekleme
             await asyncio.sleep(0.5)
 
             async with message.channel.typing():
-
                 response = await generate_ai_response(messages)
-
-                await asyncio.sleep(0.2)
-                
-                if response == "timeout":
-                    await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
-                elif response:
-                    history.append(response)
-                    await send_response(message.channel, response)
-                else:
-                    await message.channel.send("❌ Yanıt alınamadı, lütfen tekrar dene.")
+            
+            if response == "timeout":
+                await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
+            elif response:
+                history.append(response)
+                await send_response(message.channel, response)
+            else:
+                await message.channel.send("❌ Yanıt alınamadı, lütfen tekrar dene.")
             
             queue.task_done()
             
