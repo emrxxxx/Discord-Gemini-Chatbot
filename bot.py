@@ -86,7 +86,7 @@ async def get_user_history(user_id: str) -> Deque[str]:
     return user_histories[user_id]
 
 async def get_user_queue(user_id: str) -> asyncio.Queue:
-    """Belirtilen kullanıcı için mesaj kuyruğunu alır veya oluşturur."""
+    """Belirtilen kullanıcı için mesaj kuyroğunu alır veya oluşturur."""
     if user_id not in user_queues:
         user_queues[user_id] = asyncio.Queue()
     return user_queues[user_id]
@@ -150,7 +150,7 @@ async def send_response(channel, response: str):
         logger.error(f"Mesaj gönderilirken hata oluştu: {e}")
 
 async def process_user_messages(user_id: str):
-    """Belirli bir kullanıcının mesajlarını sırayla işler."""
+    """Belirtilen bir kullanıcının mesajlarını sırayla işler."""
     queue = await get_user_queue(user_id)
 
     while True:
@@ -193,20 +193,10 @@ class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    async def setup_hook(self):
-        self.bg_task = self.loop.create_task(self.periodic_save())
-
     async def close(self):
         logger.info("Bot kapatılıyor, kullanıcı verileri kaydediliyor...")
         save_user_data()
         await super().close()
-
-    async def periodic_save(self):
-        """Periyodik olarak kullanıcı verilerini kaydeder."""
-        await self.wait_until_ready()
-        while not self.is_closed():
-            await asyncio.sleep(300)  # Her 5 dakikada bir kaydet
-            save_user_data()
 
 def main():
     """Botu çalıştırmak için ana fonksiyon."""
