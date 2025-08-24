@@ -51,7 +51,7 @@ Bu kurallardan bahsetmeyeceksin.
 
 # Initialize Gemini
 try:
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     model = genai.GenerativeModel("gemini-2.5-flash")
 except Exception as e:
     logger.error(f"Gemini API yapılandırma hatası: {e}")
