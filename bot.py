@@ -96,47 +96,47 @@ async def get_user_queue(user_id: str) -> asyncio.Queue:
     return user_queues[user_id]
 
 async def process_user_messages(user_id: str):
-    """Process messages for a specific user sequentially."""
-    queue = await get_user_queue(user_id)
-    
-    while True:
-        try:
-            # Get message from queue
-            message_data = await queue.get()
-            if message_data is None:  # Shutdown signal
-                break
-                
-            message, content = message_data
-            
-            # Get user history and add new message
-            history = await get_user_history(user_id)
-            history.append(content)
+    """Process messages for a specific user sequentially."""
+    queue = await get_user_queue(user_id)
+    
+    while True:
+        try:
+            # Get message from queue
+            message_data = await queue.get()
+            if message_data is None:  # Shutdown signal
+                break
+                
+            message, content = message_data
+            
+            # Get user history and add new message
+            history = await get_user_history(user_id)
+            history.append(content)
 
-            # Prepare messages for AI
-            messages = [SYSTEM_PROMPT] + list(history)
+            # Prepare messages for AI
+            messages = [SYSTEM_PROMPT] + list(history)
 
-            # API hız sınırına takılmamak için kısa bir bekleme
-            await asyncio.sleep(0.5)
+            # API hız sınırına takılmamak için kısa bir bekleme
+            await asyncio.sleep(0.5)
 
-            async with message.channel.typing():
-                response = await generate_ai_response(messages)
-            
-            if response == "timeout":
-                await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
-            elif response:
-                history.append(response)
-                await send_response(message.channel, response)
-            else:
-                await message.channel.send("❌ Yanıt alınamadı, lütfen tekrar dene.")
-            
-            queue.task_done()
-        
-        except Exception as e:
-            logger.error(f"User {user_id} mesaj işleme hatası: {e}")
-            queue.task_done()
-    
-    # Clean up when done
-    processing_users.discard(user_id)
+            async with message.channel.typing():
+                response = await generate_ai_response(messages)
+            
+            if response == "timeout":
+                await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
+            elif response:
+                history.append(response)
+                await send_response(message.channel, response)
+            else:
+                await message.channel.send("❌ Yanıt alınamadı, lütfen tekrar dene.")
+            
+            queue.task_done()
+            
+        except Exception as e:
+            logger.error(f"User {user_id} mesaj işleme hatası: {e}")
+            queue.task_done()
+    
+    # Clean up when done
+    processing_users.discard(user_id)
 
 async def generate_ai_response(messages: list) -> Optional[str]:
     """Generate AI response with retry logic."""
