@@ -7,6 +7,7 @@ import logging
 from collections import deque
 from typing import Dict, Optional, Tuple, Deque
 import io
+from datetime import datetime, timezone
 
 # Logging yapılandırması
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
