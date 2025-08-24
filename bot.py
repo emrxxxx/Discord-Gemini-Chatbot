@@ -53,7 +53,7 @@ except Exception as e:
     model = None
 
 def save_user_data():
-    """Kullanıcı konuşma geçmişlerini JSON dosyasına kaydeder."""
+    """Kullanıcı konuşma geçmişlerini JSON dosyasına kaydeder ve GitHub'a push eder."""
     data = {
         "user_histories": {user_id: list(history) for user_id, history in user_histories.items()},
     }
@@ -61,8 +61,13 @@ def save_user_data():
         with open("user_data.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         logger.info("Kullanıcı verileri user_data.json dosyasına kaydedildi.")
+        # GitHub'a push et
+        os.system('git add user_data.json')
+        os.system('git commit -m "Update user_data.json [skip ci]" || echo "No changes to commit"')
+        os.system('git push')
+        logger.info("user_data.json GitHub'a yüklendi.")
     except Exception as e:
-        logger.error(f"Kullanıcı verileri kaydedilirken hata oluştu: {e}")
+        logger.error(f"Kullanıcı verileri kaydedilirken veya push edilirken hata oluştu: {e}")
 
 def load_user_data():
     """Kullanıcı konuşma geçmişlerini dosyadan yükler."""
