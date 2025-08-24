@@ -122,7 +122,7 @@ async def process_user_messages(user_id: str):
 
                 response = await generate_ai_response(messages)
 
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
                 
                 if response == "timeout":
                     await message.channel.send("⏳ İstek zaman aşımına uğradı, lütfen tekrar dene.")
