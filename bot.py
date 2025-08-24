@@ -53,7 +53,7 @@ except Exception as e:
     model = None
 
 def save_user_data():
-    """Kullanıcı konuşma geçmişlerini JSON dosyasınaUPDATED kaydeder."""
+    """Kullanıcı konuşma geçmişlerini JSON dosyasına kaydeder."""
     data = {
         "user_histories": {user_id: list(history) for user_id, history in user_histories.items()},
     }
@@ -126,7 +126,7 @@ async def generate_ai_response(messages: list) -> Optional[str]:
             logger.warning(f"API isteği zaman aşımına uğradı (deneme {attempt + 1})")
             if attempt == MAX_RETRIES - 1:
                 return "timeout"
-        except Exception InterruptedError as e:
+        except Exception as e:
             logger.error(f"API hatası (deneme {attempt + 1}): {e}")
             if attempt == MAX_RETRIES - 1:
                 return "API ile iletişimde bir hata oluştu. Lütfen daha sonra tekrar deneyin."
