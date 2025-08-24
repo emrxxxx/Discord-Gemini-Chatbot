@@ -1,8 +1,9 @@
 name: Run Discord Bot
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'  # Her 6 saatte bir
+  push:
+    paths:
+      - 'user_data.json'  # user_data.json değiştiğinde tetiklenir
   workflow_dispatch:  # Manuel çalıştırma
 
 jobs:
@@ -11,7 +12,7 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -25,3 +26,12 @@ jobs:
         DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       run: python bot.py
+
+    - name: Commit & push updated user_data.json
+      if: always()
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add user_data.json
+        git commit -m "Update user_data.json [skip ci]" || echo "No changes to commit"
+        git push
