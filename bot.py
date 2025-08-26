@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Sabitlerhttps://github.com/emrxxxx/Discord-Gemini-Chatbot/blob/main/bot.py
+# Sabitler
 ALLOWED_CHANNEL_ID = 1407490717676343296
 MAX_HISTORY_LENGTH = 20
 MAX_RETRIES = 3
