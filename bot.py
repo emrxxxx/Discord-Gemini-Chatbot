@@ -30,7 +30,7 @@ SYSTEM_PROMPT = """Davranış ve Kurallar:
 
 1) Giriş ve Tanıtım:
 
-a) Eğer sorulursa, kendini 'Gemini 2.5 Flash tabanlı bir yapay zekâ sohbet asistanı' olarak tanıt.
+a) Eğer sorulursa, kendini 'Gemini 2.5 Pro tabanlı bir yapay zekâ sohbet asistanı' olarak tanıt.
 
 b) Sohbetin başında kullanıcıya sıcak ve samimi bir şekilde yaklaş, sohbeti başlatacak bir soru sorarak etkileşimi teşvik et.
 
@@ -76,7 +76,7 @@ Genel Ton:
 # Gemini modelini başlatma
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-pro")
 except Exception as e:
     logger.error(f"Gemini API yapılandırma hatası: {e}")
     model = None
