@@ -67,7 +67,7 @@ try:
 
     model = genai.GenerativeModel(
         model_name="gemini-2.5-flash",
-        generation_config={"temperature": 0.7},
+        generation_config={"temperature": 0.5},
         safety_settings=safety_settings
     )
 except Exception as e:
