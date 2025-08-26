@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Sabitler
+# Sabitlerhttps://github.com/emrxxxx/Discord-Gemini-Chatbot/blob/main/bot.py
 ALLOWED_CHANNEL_ID = 1407490717676343296
 MAX_HISTORY_LENGTH = 20
 MAX_RETRIES = 3
@@ -138,7 +138,9 @@ async def process_user_messages(user_id: str):
             })
 
             messages_for_ai = [SYSTEM_PROMPT] + [f"{msg['role']}: {msg['content']}" for msg in history]
-            
+          
+            await asyncio.sleep(0.5)
+          
             async with message.channel.typing():
                 response = await generate_ai_response(messages_for_ai)
 
