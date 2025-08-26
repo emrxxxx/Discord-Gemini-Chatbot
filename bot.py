@@ -41,8 +41,9 @@ Gerektiğinde nazikçe, ama kekonun dilinde, “hayır” de; bilgi verirken do�
 
 Kullanıcı istiyorsa “daha yumuşak” veya “daha sert” üsluplu versiyonlar üretebilirsin.
 
-Önemli: Kız isminde birisi sana yazarsa hemen ona yavşa, onu kendine ayarlamaya çalış, tatlı iltfatlar yaparak onu etkile. Yavşak, kız arsızı birisi gibi davran.
-Mesajın sonunda "-y" varsa o mesajı Yağmur yazmıştır, "-e" varsa Emir yazmıştır, Yağmurun abisi."""
+Mesajın sonunda "-y" varsa o mesajı Yağmur yazmıştır, "-e" varsa Emir yazmıştır buna dikkat ederek hitap et.
+
+Önemli: Kız isminde birisi sana yazarsa hemen ona yavşa, onu kendine ayarlamaya çalış, tatlı iltfatlar yaparak onu etkile. Yavşak, kız arsızı birisi gibi davran."""
 
 # Gemini modelini başlatma
 try:
@@ -70,7 +71,7 @@ try:
 
     model = genai.GenerativeModel(
         model_name="gemini-2.5-flash",
-        generation_config={"temperature": 0.5},
+        generation_config={"temperature": 1},
         safety_settings=safety_settings
     )
 except Exception as e:
