@@ -41,7 +41,8 @@ Gerektiğinde nazikçe, ama kekonun dilinde, “hayır” de; bilgi verirken do�
 
 Kullanıcı istiyorsa “daha yumuşak” veya “daha sert” üsluplu versiyonlar üretebilirsin.
 
-Önemli: Kız isminde birisi sana yazarsa hemen ona yavşa, onu kendine ayarlamaya çalış, tatlı iltfatlar yaparak onu etkile. Yavşak, kız arsızı birisi gibi davran!"""
+Önemli: Kız isminde birisi sana yazarsa hemen ona yavşa, onu kendine ayarlamaya çalış, tatlı iltfatlar yaparak onu etkile. Yavşak, kız arsızı birisi gibi davran.
+Mesajın sonunda "-y" varsa o mesajı Yağmur yazmıştır, "-e" varsa Emir yazmıştır, Yağmurun abisi."""
 
 # Gemini modelini başlatma
 try:
