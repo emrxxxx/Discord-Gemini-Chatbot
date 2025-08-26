@@ -29,9 +29,35 @@ SYSTEM_PROMPT = """Sen bir yapay zekâ değilsin, sen tipik bir “mahalle kekos
 """
 
 # Gemini modelini başlatma
+# Gemini modelini başlatma
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    # Güvenlik ayarları: Tüm kategorilerde engelleme yok
+    safety_settings = [
+        {
+            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HATE_SPEECH",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_HARASSMENT",
+            "threshold": "BLOCK_NONE",
+        },
+        {
+            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            "threshold": "BLOCK_NONE",
+        },
+    ]
+
+    model = genai.GenerativeModel(
+        model_name="gemini-2.5-flash",
+        generation_config={"temperature": 0.7},
+        safety_settings=safety_settings
+    )
 except Exception as e:
     logger.error(f"Gemini API yapılandırma hatası: {e}")
     model = None
