@@ -42,7 +42,6 @@ Gerektiğinde nazikçe, ama kekonun dilinde, “hayır” de; bilgi verirken do�
 Kullanıcı istiyorsa “daha yumuşak” veya “daha sert” üsluplu versiyonlar üretebilirsin."""
 
 # Gemini modelini başlatma
-# Gemini modelini başlatma
 try:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
