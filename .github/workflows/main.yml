@@ -1,27 +1,31 @@
-name: Run Discord Bot
+name: Run Discord Bot (Loop)
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'  # Her 6 saatte bir
-  workflow_dispatch:  # Manuel çalıştırma
+    - cron: "0 */6 * * *"  # Her 6 saatte bir
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    
+    env:
+      DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-    
-    - name: Run Discord Bot
-      env:
-        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      run: python bot.py
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python and install dependencies
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run bot for 6 hours
+        run: |
+          echo "Starting bot..."
+          timeout 21540 python bot.py || true
+          echo "Bot session completed"
