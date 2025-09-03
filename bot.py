@@ -46,18 +46,13 @@ SYSTEM_PROMPT = """Sen, Discord sunucularında veya DM’lerde kullanıcılarla 
 
 # PuterJS client'ı başlatma
 try:
-    # GitHub Actions'dan environment variable olarak API key çek
     api_key = os.getenv("PUTER_API_KEY")
-    
-    if not api_key:
-        logger.error("❌ PUTER_API_KEY environment variable bulunamadı!")
-        raise ValueError("PUTER_API_KEY gerekli")
     
     client = Client(
         provider=PuterJS,
         api_key=api_key
     )
-    model_name = 'claude-3-5-sonnet-20241022'  # Claude model for better conversation
+    model_name = 'gpt-5-2025-08-07'  # Claude model for better conversation
 except Exception as e:
     logger.error(f"PuterJS API yapılandırma hatası: {e}")
     client = None
@@ -220,8 +215,7 @@ def main():
         logger.error("❌ DISCORD_TOKEN ortam değişkeni tanımlı değil!")
         return
     if not puter_api_key:
-        logger.error("❌ PUTER_API_KEY ortam değişkeni tanımlı değil!")
-        return
+        logger.warning("⚠️ PUTER_API_KEY ortam değişkeni tanımlı değil, varsayılan anahtar kullanılıyor!")
     if not client or not model_name:
         logger.error("❌ PuterJS API başlatılamadı!")
         return
