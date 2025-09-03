@@ -85,9 +85,9 @@ async def generate_ai_response(messages: list) -> Optional[str]:
                         formatted_messages.append({"role": "user", "content": msg[5:].strip()})
                     elif msg.startswith("assistant:"):
                         formatted_messages.append({"role": "assistant", "content": msg[10:].strip()})
-                    elif not any(msg.startswith(prefix) for prefix in ["user:", "assistant:"]):
+                    # elif not any(msg.startswith(prefix) for prefix in ["user:", "assistant:"]):
                         # This is likely the system prompt
-                        formatted_messages.insert(0, {"role": "system", "content": msg})
+                       # formatted_messages.insert(0, {"role": "system", "content": msg})
                 elif isinstance(msg, dict):
                     formatted_messages.append(msg)
 
