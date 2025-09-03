@@ -52,7 +52,7 @@ try:
         provider=PuterJS,
         api_key=api_key
     )
-    model_name = 'gpt-5-2025-08-07'
+    model_name = 'o3'
 except Exception as e:
     logger.error(f"PuterJS API yapılandırma hatası: {e}")
     client = None
