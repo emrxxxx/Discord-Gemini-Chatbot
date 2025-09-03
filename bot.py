@@ -52,7 +52,7 @@ try:
         provider=PuterJS,
         api_key=api_key
     )
-    model_name = 'o3'
+    model_name = 'claude-3-5-sonnet-20241022'
 except Exception as e:
     logger.error(f"PuterJS API yapılandırma hatası: {e}")
     client = None
