@@ -46,7 +46,7 @@ SYSTEM_PROMPT = """Sen, Discord sunucularında veya DM’lerde kullanıcılarla 
 
 # PuterJS client'ı başlatma
 try:
-    api_key = os.getenv("PUTER_API_KEY") or ""
+    api_key = os.getenv("PUTER_API_KEY")
     
     client = Client(
         provider=PuterJS,
