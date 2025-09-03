@@ -1,13 +1,18 @@
 import os
 import discord
 from discord.ext import commands
-import google.generativeai as genai
+from g4f.client import Client
+from g4f.Provider import PuterJS
 import asyncio
 import logging
 from collections import deque
 from typing import Dict, Optional, Tuple, Deque
 import io
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Logging yapılandırması
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -36,41 +41,22 @@ SYSTEM_PROMPT = """Sen, Discord sunucularında veya DM’lerde kullanıcılarla 
 7. **Mesaj Uzunluğu ve Formatlama:** Yanıtlar 2000 karakteri geçiyorsa embed veya dosya olarak gönderilebileceğini bil; ama yanıtlarını mümkün olduğunca kısa ve anlaşılır tut.  
 8. **Komutsuz Çalış:** Kullanıcılar doğrudan mesaj yazdığında yanıt ver, komut bekleme.  
 
-**Ek Talimat:** Yanıt verirken kullanıcıya değer kat, onu sohbete dahil et ve sürekli etkileşimi teşvik et. Gereksiz tekrar ve boş mesajlardan kaçın.
+**Ek Talimat:** Yanıt verirken kullanıcıya değer kat, onu sohbete dahil et ve konuyu kapatmadığı sürece etkileşimi teşvik et. Gereksiz tekrar ve boş mesajlardan kaçın.
 """
 
-# Gemini modelini başlatma
+# PuterJS client'ı başlatma
 try:
-    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-    # Güvenlik ayarları: Tüm kategorilerde engelleme yok
-    safety_settings = [
-        {
-            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            "threshold": "BLOCK_NONE",
-        },
-        {
-            "category": "HARM_CATEGORY_HATE_SPEECH",
-            "threshold": "BLOCK_NONE",
-        },
-        {
-            "category": "HARM_CATEGORY_HARASSMENT",
-            "threshold": "BLOCK_NONE",
-        },
-        {
-            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-            "threshold": "BLOCK_NONE",
-        },
-    ]
-
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        generation_config={"temperature": 1},
-        safety_settings=safety_settings
+    api_key = os.getenv("PUTER_API_KEY") or ""
+    
+    client = Client(
+        provider=PuterJS,
+        api_key=api_key
     )
+    model_name = 'gpt-5-2025-08-07'  # Claude model for better conversation
 except Exception as e:
-    logger.error(f"Gemini API yapılandırma hatası: {e}")
-    model = None
+    logger.error(f"PuterJS API yapılandırma hatası: {e}")
+    client = None
+    model_name = None
 
 async def get_user_history(user_id: str) -> Deque[Dict]:
     """Belirtilen kullanıcı için konuşma geçmişini alır veya oluşturur."""
@@ -86,31 +72,56 @@ async def get_user_queue(user_id: str) -> asyncio.Queue:
 
 async def generate_ai_response(messages: list) -> Optional[str]:
     """AI yanıtını yeniden deneme mantığıyla ve asenkron olarak oluşturur."""
-    if not model:
+    if not client or not model_name:
         return None
 
     for attempt in range(MAX_RETRIES):
         try:
+            # Convert messages to the format expected by g4f
+            formatted_messages = []
+            for msg in messages:
+                if isinstance(msg, str):
+                    if msg.startswith("user:"):
+                        formatted_messages.append({"role": "user", "content": msg[5:].strip()})
+                    elif msg.startswith("assistant:"):
+                        formatted_messages.append({"role": "assistant", "content": msg[10:].strip()})
+                    elif not any(msg.startswith(prefix) for prefix in ["user:", "assistant:"]):
+                        # This is likely the system prompt
+                        formatted_messages.insert(0, {"role": "system", "content": msg})
+                elif isinstance(msg, dict):
+                    formatted_messages.append(msg)
+
+            # Ensure we have at least one user message
+            if not any(msg.get("role") == "user" for msg in formatted_messages):
+                return "Lütfen bir mesaj yazın."
+
+            # Run the synchronous call in a thread pool to avoid blocking
+            if client is None or model_name is None:
+                return "Client or model not initialized"
+            
+            # Type assertion for mypy/pylint
+            client_instance = client
+            model_instance = model_name
+            
+            loop = asyncio.get_event_loop()
             response = await asyncio.wait_for(
-                model.generate_content_async(messages),
+                loop.run_in_executor(
+                    None,
+                    lambda: client_instance.chat.completions.create(
+                        model=model_instance,
+                        messages=formatted_messages,
+                        stream=False
+                    )
+                ),
                 timeout=TIMEOUT_SECONDS
             )
 
-            if response and response.candidates:
-                candidate = response.candidates[0]
-                
-                finish_reason = candidate.finish_reason.name
-                if finish_reason == "STOP":
-                    return response.text or "Yanıt boş geldi."
-                elif finish_reason == "MAX_TOKENS":
-                    return "Yanıt çok uzun oldu, lütfen daha kısa bir soru sorun."
-                elif finish_reason == "SAFETY":
-                    return "Bu konuda yanıt veremiyorum. Lütfen farklı bir soru sorun."
-                elif finish_reason == "RECITATION":
-                    return "Bu içerik telif hakkı nedeniyle yanıtlanamıyor."
+            if response and response.choices:
+                content = response.choices[0].message.content
+                if content:
+                    return content.strip()
                 else:
-                    logger.warning(f"Bilinmeyen finish_reason: {finish_reason}")
-                    return "Beklenmeyen bir durum oluştu."
+                    return "Yanıt boş geldi."
             else:
                 return None
 
@@ -198,16 +209,15 @@ class MyBot(commands.Bot):
 def main():
     """Botu çalıştırmak için ana fonksiyon."""
     token = os.getenv("DISCORD_TOKEN")
-    google_api_key = os.getenv("GOOGLE_API_KEY")
+    puter_api_key = os.getenv("PUTER_API_KEY")
 
     if not token:
         logger.error("❌ DISCORD_TOKEN ortam değişkeni tanımlı değil!")
         return
-    if not google_api_key:
-        logger.error("❌ GOOGLE_API_KEY ortam değişkeni tanımlı değil!")
-        return
-    if not model:
-        logger.error("❌ Gemini API başlatılamadı!")
+    if not puter_api_key:
+        logger.warning("⚠️ PUTER_API_KEY ortam değişkeni tanımlı değil, varsayılan anahtar kullanılıyor!")
+    if not client or not model_name:
+        logger.error("❌ PuterJS API başlatılamadı!")
         return
     
     intents = discord.Intents.default()
