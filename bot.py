@@ -52,7 +52,7 @@ try:
         provider=PuterJS,
         api_key=api_key
     )
-    model_name = 'gpt-5-2025-08-07'  # Claude model for better conversation
+    model_name = 'gpt-5-chat-latest'
 except Exception as e:
     logger.error(f"PuterJS API yapılandırma hatası: {e}")
     client = None
@@ -169,8 +169,10 @@ async def process_user_messages(user_id: str):
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
 
-            messages_for_ai = [SYSTEM_PROMPT] + [f"{msg['role']}: {msg['content']}" for msg in history]
-          
+            messages_for_ai = [f"{msg['role']}: {msg['content']}" for msg in history]
+            # or
+            # messages_for_ai = [SYSTEM_PROMPT] + [f"{msg['role']}: {msg['content']}" for msg in history]
+
             await asyncio.sleep(0.5)
           
             async with message.channel.typing():
