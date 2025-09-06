@@ -85,9 +85,6 @@ async def generate_ai_response(messages: list) -> Optional[str]:
                         formatted_messages.append({"role": "user", "content": msg[5:].strip()})
                     elif msg.startswith("assistant:"):
                         formatted_messages.append({"role": "assistant", "content": msg[10:].strip()})
-                    # elif not any(msg.startswith(prefix) for prefix in ["user:", "assistant:"]):
-                        # This is likely the system prompt
-                       # formatted_messages.insert(0, {"role": "system", "content": msg})
                 elif isinstance(msg, dict):
                     formatted_messages.append(msg)
 
@@ -99,7 +96,6 @@ async def generate_ai_response(messages: list) -> Optional[str]:
             if client is None or model_name is None:
                 return "Client or model not initialized"
             
-            # Type assertion for mypy/pylint
             client_instance = client
             model_instance = model_name
             
@@ -149,7 +145,7 @@ async def send_response(channel, response: str):
             file = discord.File(file_content, filename="yanit.txt")
             await channel.send("Yanıt çok uzun, dosya olarak gönderiyorum:", file=file)
     except discord.errors.Forbidden:
-        logger.error(f"Kanala mesaj gönderme izni yok: {channel.id}")
+        logger.error("Kanala mesaj gönderme izni yok (kanal bilgisi gizlendi)")
     except Exception as e:
         logger.error(f"Mesaj gönderilirken hata oluştu: {e}")
 
@@ -162,7 +158,6 @@ async def process_user_messages(user_id: str):
             message, content = await queue.get()
             
             history = await get_user_history(user_id)
-            # Mesajı JSON formatında zaman damgasıyla kaydet
             history.append({
                 "role": "user",
                 "content": content,
@@ -170,8 +165,6 @@ async def process_user_messages(user_id: str):
             })
 
             messages_for_ai = [f"{msg['role']}: {msg['content']}" for msg in history]
-            # or
-            # messages_for_ai = [SYSTEM_PROMPT] + [f"{msg['role']}: {msg['content']}" for msg in history]
 
             await asyncio.sleep(0.5)
           
@@ -193,7 +186,7 @@ async def process_user_messages(user_id: str):
             queue.task_done()
 
         except Exception as e:
-            logger.error(f"Kullanıcı {user_id} mesaj işleme hatası: {e}")
+            logger.error(f"Kullanıcı mesaj işleme hatası: {type(e).__name__}: {str(e)[:100]}")
             queue.task_done()
             break
     
@@ -230,7 +223,7 @@ def main():
 
     @bot.event
     async def on_ready():
-        logger.info(f"✅ Bot giriş yaptı: {bot.user}")
+        logger.info("✅ Bot başarıyla giriş yaptı (bot bilgisi gizlendi)")
         await bot.change_presence(activity=discord.Game(name="Özel Mesajlarda Sohbet"))
     
     @bot.event
